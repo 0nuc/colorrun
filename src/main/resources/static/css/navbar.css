@@ -1,0 +1,27 @@
+/* Suppression du style personnalisé pour utiliser le style Bootstrap par défaut */
+
+.navbar {
+  background-color: #f8f9fa !important;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.navbar-brand {
+  color: #0d6efd !important;
+  font-weight: bold;
+}
+
+.nav-link {
+  color: #212529 !important;
+}
+
+.nav-link:hover {
+  color: #0d6efd !important;
+}
+
+.navbar-toggler {
+  border-color: #dee2e6;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}

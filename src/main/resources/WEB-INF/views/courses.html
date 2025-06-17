@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ColorRun - Courses</title>
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <style>
+      :root {
+        --primary: #ff1493;
+        --secondary: #ff6b00;
+        --text-dark: #2c3e50;
+        --text-light: #ffffff;
+        --bg-light: #f8f9fa;
+        --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: var(--bg-light);
+        color: var(--text-dark);
+        line-height: 1.6;
+      }
+
+      /* Navbar styles */
+      .navbar {
+        background: white !important;
+        box-shadow: var(--shadow);
+        padding: 1rem 0;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--primary) !important;
+      }
+
+      .nav-link {
+        color: var(--text-dark) !important;
+        font-weight: 500;
+        padding: 0.5rem 1rem !important;
+        transition: color 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: var(--primary) !important;
+      }
+
+      .navbar-toggler {
+        border: none;
+        padding: 0.5rem;
+      }
+
+      .navbar-toggler:focus {
+        box-shadow: none;
+      }
+
+      .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 20, 147, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+      }
+
+      .section-title {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .section-title h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+
+      .event-card {
+        background: white;
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 2rem;
+      }
+
+      .event-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-hover);
+      }
+
+      .event-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(255, 20, 147, 0.15);
+      }
+
+      .event-date {
+        background: var(--primary);
+        color: #fff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+      }
+
+      .event-title {
+        font-weight: 700;
+        font-size: 1.3rem;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+        text-align: center;
+      }
+
+      .event-info {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 0.3rem;
+        text-align: center;
+      }
+
+      .event-btn {
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 0.7rem 2rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        text-align: center;
+        display: block;
+        width: 100%;
+        max-width: 200px;
+      }
+
+      .event-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+        color: #fff;
+        background: var(--secondary);
+      }
+
+      .filters {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 3rem;
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.2rem rgba(255, 20, 147, 0.25);
+      }
+
+      .btn-filter {
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+      }
+
+      .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+        color: white;
+        background: var(--secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <div th:replace="fragments/navbar.html :: body"></div>
+
+    <!-- Section Courses -->
+    <section class="container py-5">
+      <div class="section-title">
+        <h2>Nos Courses</h2>
+        <p>Découvrez toutes nos courses colorées à venir</p>
+      </div>
+
+      <!-- Filtres -->
+      <div class="filters">
+        <form class="row g-3" method="get">
+          <div class="col-md-3">
+            <input
+              type="date"
+              name="date"
+              class="form-control"
+              placeholder="Date"
+            />
+          </div>
+          <div class="col-md-3">
+            <input
+              type="text"
+              name="ville"
+              class="form-control"
+              placeholder="Ville"
+            />
+          </div>
+          <div class="col-md-3">
+            <input
+              type="number"
+              name="distance"
+              class="form-control"
+              placeholder="Distance (km)"
+            />
+          </div>
+          <div class="col-md-3">
+            <select name="tri" class="form-select">
+              <option value="">Trier par...</option>
+              <option value="date">Date</option>
+              <option value="ville">Ville</option>
+              <option value="distance">Distance</option>
+            </select>
+          </div>
+          <div class="col-12 text-center">
+            <button type="submit" class="btn btn-filter">Filtrer</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Liste des courses -->
+      <div class="row">
+        <div
+          class="col-12"
+          th:if="${courses == null or #lists.isEmpty(courses)}"
+        >
+          <div class="alert alert-info">Aucune course trouvée.</div>
+        </div>
+        <div class="col-md-4 mb-4" th:each="course : ${courses}">
+          <div class="event-card">
+            <div class="event-date" th:text="${course.dateHeure}">
+              15 Mai 2025
+            </div>
+            <div class="event-icon"><i class="bi bi-flag"></i></div>
+            <h3 class="event-title" th:text="${course.nom}">ColorRun Paris</h3>
+            <p class="event-info" th:text="${course.description}">
+              Description...
+            </p>
+            <div class="event-info">
+              <i class="bi bi-geo-alt"></i>
+              <span th:text="${course.lieu}">Lieu</span>
+            </div>
+            <div class="event-info">
+              <i class="bi bi-rulers"></i>
+              <span th:text="${course.distance + ' km'}">5 km</span>
+            </div>
+            <div class="event-info">
+              <i class="bi bi-people"></i>
+              <span th:text="${course.maxParticipants + ' participants max'}"
+                >1000 participants max</span
+              >
+            </div>
+            <div class="event-info">
+              <i class="bi bi-tag"></i>
+              <span th:text="${course.prix + '€'}">35€</span>
+            </div>
+            <div class="event-info" th:if="${course.avecObstacles}">
+              <i class="bi bi-barricade"></i> Avec obstacles
+            </div>
+            <div class="event-info" th:if="${course.causeSoutenue}">
+              <i class="bi bi-heart"></i>
+              <span th:text="${course.causeSoutenue}">Cause</span>
+            </div>
+            <a <a th:href="@{/courses/{id}(id=${course.id})}" class="event-btn"
+              >En savoir plus</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pied de page -->
+    <div th:replace="fragments/footer :: footer"></div>
+
+    <!-- Scripts -->
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script
+      th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"
+    ></script>
+  </body>
+</html>
