@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.colorrun.model.Course;
+import com.colorrun.model.Message;
 
 public class CourseDao {
     private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
@@ -28,7 +29,7 @@ public class CourseDao {
         try {
             // Vérifie si les tables existent
             try (Connection conn = getConnection();
-                 ResultSet rs = conn.getMetaData().getTables(null, null, "USERS", null)) {
+                    ResultSet rs = conn.getMetaData().getTables(null, null, "USERS", null)) {
                 if (!rs.next()) {
                     // Les tables n'existent pas, on les crée
                     createTables(conn);
@@ -89,12 +90,12 @@ public class CourseDao {
     private void insertTestData(Connection conn) throws SQLException {
         // Vérifie si la table users est vide
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
             if (rs.next() && rs.getInt(1) == 0) {
                 // Insère les utilisateurs de test
                 try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)")) {
-                    
+                        "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)")) {
+
                     // Admin
                     pstmt.setString(1, "Admin");
                     pstmt.setString(2, "Admin");
@@ -124,12 +125,12 @@ public class CourseDao {
 
         // Vérifie si la table course est vide
         try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM course")) {
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM course")) {
             if (rs.next() && rs.getInt(1) == 0) {
                 // Insère les données de test
                 try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO course (nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                    
+                        "INSERT INTO course (nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+
                     // Course 1
                     pstmt.setString(1, "ColorRun Paris");
                     pstmt.setString(2, "Course colorée dans les rues de Paris");
@@ -173,9 +174,9 @@ public class CourseDao {
     public List<Course> findAll() {
         List<Course> courses = new ArrayList<>();
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM course ORDER BY date_heure")) {
-            
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT * FROM course ORDER BY date_heure")) {
+
             while (rs.next()) {
                 Course course = new Course();
                 course.setId(rs.getInt("id"));
@@ -198,22 +199,21 @@ public class CourseDao {
 
     public Course findById(int id) {
         try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM course WHERE id = ?")) {
+                PreparedStatement ps = conn.prepareStatement("SELECT * FROM course WHERE id = ?")) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return new Course(
-                    rs.getInt("id"),
-                    rs.getString("nom"),
-                    rs.getString("description"),
-                    rs.getTimestamp("date_heure").toLocalDateTime(),
-                    rs.getString("lieu"),
-                    rs.getInt("distance"),
-                    rs.getInt("max_participants"),
-                    rs.getDouble("prix"),
-                    rs.getBoolean("avec_obstacles"),
-                    rs.getString("cause_soutenue")
-                );
+                        rs.getInt("id"),
+                        rs.getString("nom"),
+                        rs.getString("description"),
+                        rs.getTimestamp("date_heure").toLocalDateTime(),
+                        rs.getString("lieu"),
+                        rs.getInt("distance"),
+                        rs.getInt("max_participants"),
+                        rs.getDouble("prix"),
+                        rs.getBoolean("avec_obstacles"),
+                        rs.getString("cause_soutenue"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -223,9 +223,10 @@ public class CourseDao {
 
     public void save(Course course) {
         try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO course(nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO course(nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             ps.setString(1, course.getNom());
             ps.setString(2, course.getDescription());
             ps.setTimestamp(3, java.sql.Timestamp.valueOf(course.getDateHeure()));
@@ -240,4 +241,34 @@ public class CourseDao {
             e.printStackTrace();
         }
     }
-} 
+
+    public List<Message> findMessagesByCourseId(int courseId) {
+        List<Message> messages = new ArrayList<>();
+        String sql = "SELECT m.*, u.first_name, u.last_name FROM messages m " +
+                "JOIN users u ON m.user_id = u.id " +
+                "WHERE m.course_id = ? " +
+                "ORDER BY m.date_heure DESC";
+
+        try (Connection conn = getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, courseId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Message message = new Message();
+                message.setId(rs.getInt("id"));
+                message.setCourseId(rs.getInt("course_id"));
+                message.setUserId(rs.getInt("user_id"));
+                message.setContenu(rs.getString("contenu"));
+                message.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                message.setAuthorFirstName(rs.getString("first_name"));
+                message.setAuthorLastName(rs.getString("last_name"));
+                messages.add(message);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return messages;
+    }
+}

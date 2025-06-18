@@ -8,17 +8,21 @@ public class Message {
     private int userId;
     private String contenu;
     private LocalDateTime dateHeure;
-    private String auteur; // Nom complet de l'auteur
+    private String authorFirstName;
+    private String authorLastName;
 
-    public Message() {}
+    public Message() {
+    }
 
-    public Message(int id, int courseId, int userId, String contenu, LocalDateTime dateHeure, String auteur) {
+    public Message(int id, int courseId, int userId, String contenu, LocalDateTime dateHeure, String authorFirstName,
+            String authorLastName) {
         this.id = id;
         this.courseId = courseId;
         this.userId = userId;
         this.contenu = contenu;
         this.dateHeure = dateHeure;
-        this.auteur = auteur;
+        this.authorFirstName = authorFirstName;
+        this.authorLastName = authorLastName;
     }
 
     // Getters et Setters
@@ -62,11 +66,23 @@ public class Message {
         this.dateHeure = dateHeure;
     }
 
-    public String getAuteur() {
-        return auteur;
+    public String getAuthorFirstName() {
+        return authorFirstName;
     }
 
-    public void setAuteur(String auteur) {
-        this.auteur = auteur;
+    public void setAuthorFirstName(String authorFirstName) {
+        this.authorFirstName = authorFirstName;
     }
-} 
+
+    public String getAuthorLastName() {
+        return authorLastName;
+    }
+
+    public void setAuthorLastName(String authorLastName) {
+        this.authorLastName = authorLastName;
+    }
+
+    public String getAuthorFullName() {
+        return authorFirstName + " " + authorLastName;
+    }
+}

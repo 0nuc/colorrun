@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root {
+      /* Color Run Theme - Palette cohérente */
+      --primary-magenta: #FF1493;
+      --primary-orange: #FF4500;
+      --primary-cyan: #00CED1;
+      --primary-lime: #32CD32;
+      --primary-purple: #8A2BE2;
+      --primary-yellow: #FFD700;
+
+      /* Gradients harmonieux */
+      --gradient-rainbow: linear-gradient(135deg,
+      var(--primary-magenta) 0%,
+      var(--primary-orange) 20%,
+      var(--primary-yellow) 40%,
+      var(--primary-lime) 60%,
+      var(--primary-cyan) 80%,
+      var(--primary-purple) 100%);
+      --gradient-ocean: linear-gradient(135deg, var(--primary-cyan), var(--primary-purple));
+
+      --text-light: #ffffff;
+      --shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      background: var(--gradient-ocean);
+      color: var(--text-light);
+      padding: 4rem 0 2rem;
+      position: relative;
+      overflow: hidden;
+      margin-top: 4rem;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: var(--gradient-rainbow);
+    }
+
+    footer::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><radialGradient id="footerPowder" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:rgba(255,255,255,0.05)"/><stop offset="100%" style="stop-color:rgba(255,255,255,0)"/></radialGradient></defs><circle cx="15" cy="5" r="3" fill="url(%23footerPowder)"/><circle cx="35" cy="12" r="4" fill="url(%23footerPowder)"/><circle cx="55" cy="8" r="5" fill="url(%23footerPowder)"/><circle cx="75" cy="15" r="3" fill="url(%23footerPowder)"/><circle cx="90" cy="6" r="4" fill="url(%23footerPowder)"/></svg>') repeat;
+      animation: floatReverse 25s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes floatReverse {
+      0% { transform: translateX(100px); }
+      100% { transform: translateX(-100px); }
+    }
+
+    .footer-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    footer h5 {
+      color: var(--text-light);
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    footer h5::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: var(--gradient-rainbow);
+      border-radius: 2px;
+    }
+
+    footer ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    footer ul li {
+      margin-bottom: 0.8rem;
+    }
+
+    footer ul li a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      padding: 0.3rem 0;
+      display: inline-block;
+    }
+
+    footer ul li a:hover {
+      color: var(--text-light);
+      transform: translateX(5px);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .footer-social {
+      text-align: center;
+      margin: 3rem 0 2rem;
+    }
+
+    .footer-social a {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      margin: 0 0.5rem;
+      line-height: 50px;
+      color: var(--text-light);
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .footer-social a:hover {
+      background: var(--gradient-rainbow);
+      transform: translateY(-3px) scale(1.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      padding-top: 2rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .footer-logo {
+      font-size: 2rem;
+      font-weight: 800;
+      background: var(--gradient-rainbow);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      footer {
+        padding: 3rem 0 1.5rem;
+        text-align: center;
+      }
+
+      footer h5::after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .footer-social a {
+        width: 45px;
+        height: 45px;
+        line-height: 45px;
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<footer th:fragment="footer">
+  <div class="container footer-content">
+    <div class="row">
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="footer-logo">🏃‍♀️ ColorRun</div>
+        <p style="color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+          Participez à l'expérience colorée la plus fun !
+          Courez, riez, et laissez exploser les couleurs dans une course unique en son genre.
+        </p>
+      </div>
+      <div class="col-lg-2 col-md-6 mb-4">
+        <h5>Navigation</h5>
+        <ul>
+          <li><a th:href="@{/}">🏠 Accueil</a></li>
+          <li><a th:href="@{/races}">🏃 Courses</a></li>
+          <li><a th:href="@{/contact}">📞 Contact</a></li>
+          <li><a th:href="@{/about}">ℹ️ À propos</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="#">🎯 Inscription courses</a></li>
+          <li><a href="#">🏆 Classements</a></li>
+          <li><a href="#">📋 Résultats</a></li>
+          <li><a href="#">🎨 Matériel coloré</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3 col-md-6 mb-4">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:info@colorrun.fr">📧 info@colorrun.fr</a></li>
+          <li><a href="tel:+33123456789">📞 01 23 45 67 89</a></li>
+          <li><a href="#">📍 Paris, France</a></li>
+          <li><a href="#">🕒 Lun-Ven 9h-18h</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-social">
+      <a href="#" title="Facebook">📘</a>
+      <a href="#" title="Instagram">📸</a>
+      <a href="#" title="Twitter">🐦</a>
+      <a href="#" title="YouTube">📺</a>
+      <a href="#" title="TikTok">🎵</a>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2025 ColorRun. Tous droits réservés. Fait avec 💖 pour les amoureux de la course colorée !</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
+height: 2px;
+background: var(--color-yellow);
+}
+
+footer p {
+color: rgba(255, 255, 255, 0.9);
+line-height: 1.6;
+}
+
+footer .list-unstyled li {
+margin-bottom: 0.8rem;
+}
+
+footer a {
+color: rgba(255, 255, 255, 0.9) !important;
+text-decoration: none;
+transition: all 0.3s ease;
+}
+
+footer a:hover {
+color: white !important;
+transform: translateX(5px);
+}
+
+footer .bi {
+margin-right: 0.5rem;
+color: var(--color-yellow);
+}
+
+footer .social-links a {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 35px;
+height: 35px;
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.1);
+margin-right: 0.5rem;
+transition: all 0.3s ease;
+}
+
+footer .social-links a:hover {
+background: var(--color-yellow);
+transform: translateY(-3px);
+}
+
+footer .social-links a:hover i {
+color: var(--color-purple) !important;
+}
+
+footer hr {
+border-color: rgba(255, 255, 255, 0.1);
+margin: 2rem 0;
+}
+
+footer .copyright {
+text-align: center;
+padding-top: 2rem;
+color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-bg-bubbles {
+position: absolute;
+top: 0; left: 0; width: 100%; height: 100%;
+z-index: 0;
+pointer-events: none;
+overflow: hidden;
+}
+.footer-bg-bubbles span {
+position: absolute;
+border-radius: 50%;
+opacity: 0.18;
+filter: blur(2px);
+animation: footerBubbleMove 10s infinite alternate;
+}
+.footer-bg-bubbles .b1 { background: var(--color-pink); width: 70px; height: 70px; left: 15%; top: 60%; animation-delay: 0s; }
+.footer-bg-bubbles .b2 { background: var(--color-yellow); width: 50px; height: 50px; left: 80%; top: 20%; animation-delay: 2s; }
+.footer-bg-bubbles .b3 { background: var(--color-blue); width: 90px; height: 90px; left: 60%; top: 80%; animation-delay: 1s; }
+.footer-bg-bubbles .b4 { background: var(--color-green); width: 35px; height: 35px; left: 5%; top: 30%; animation-delay: 3s; }
+.footer-bg-bubbles .b5 { background: var(--color-purple); width: 60px; height: 60px; left: 75%; top: 70%; animation-delay: 1.5s; }
+@keyframes footerBubbleMove {
+0% { transform: translateY(0) scale(1); }
+100% { transform: translateY(-15px) scale(1.08); }
+}
+</style>
+</head>
+<body>
+<footer th:fragment="footer" style="position:relative;">
+  <div class="footer-bg-bubbles">
+    <span class="b1"></span>
+    <span class="b2"></span>
+    <span class="b3"></span>
+    <span class="b4"></span>
+    <span class="b5"></span>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <h5>ColorRun</h5>
+        <p>La course la plus colorée et festive de l'année !</p>
+        <div class="social-links">
+          <a href="#"><i class="bi bi-facebook"></i></a>
+          <a href="#"><i class="bi bi-twitter"></i></a>
+          <a href="#"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Liens utiles</h5>
+        <ul class="list-unstyled">
+          <li><a th:href="@{/races}"><i class="bi bi-arrow-right"></i>Courses</a></li>
+          <li><a th:href="@{/contact}"><i class="bi bi-arrow-right"></i>Contact</a></li>
+          <li><a th:href="@{/register}"><i class="bi bi-arrow-right"></i>Inscription</a></li>
+        </ul>
+      </div>
+      <div class="col-md-4 mb-4">
+        <h5>Contact</h5>
+        <ul class="list-unstyled">
+          <li><i class="bi bi-geo-alt"></i>123 Rue de la Course, Paris</li>
+          <li><i class="bi bi-envelope"></i>contact@colorrun.fr</li>
+          <li><i class="bi bi-phone"></i>+33 1 23 45 67 89</li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <div class="copyright">
+      <p class="mb-0">&copy; 2024 ColorRun. Tous droits réservés.</p>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

@@ -3,25 +3,26 @@ package com.colorrun.servlet;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.WebContext;
+import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import com.colorrun.dao.CourseDao;
 import com.colorrun.model.Course;
 
-// @WebServlet("/courses")
+@WebServlet("/courses")
 public class CoursesServlet extends HttpServlet {
     private CourseDao courseDao;
 
     @Override
-    public void init() {
+    public void init() throws ServletException {
         System.out.println("CoursesServlet.init() - Démarrage");
         courseDao = new CourseDao();
     }
@@ -30,7 +31,7 @@ public class CoursesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         System.out.println("CoursesServlet.doGet() - Début");
-        
+
         try {
             // Configuration Thymeleaf
             System.out.println("Configuration Thymeleaf...");
@@ -49,7 +50,7 @@ public class CoursesServlet extends HttpServlet {
 
             // Passage des données à la vue
             System.out.println("Préparation du contexte...");
-            WebContext ctx = new WebContext(req, resp, getServletContext(), req.getLocale());
+            Context ctx = new Context(req.getLocale());
             ctx.setVariable("courses", courses);
             HttpSession session = req.getSession(false);
             if (session != null) {
@@ -60,11 +61,11 @@ public class CoursesServlet extends HttpServlet {
             System.out.println("Rendu de la vue...");
             engine.process("courses", ctx, resp.getWriter());
             System.out.println("CoursesServlet.doGet() - Fin");
-            
+
         } catch (Exception e) {
             System.err.println("ERREUR dans CoursesServlet.doGet() :");
             e.printStackTrace();
             throw e;
         }
     }
-} 
+}

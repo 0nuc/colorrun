@@ -2,84 +2,68 @@ package com.colorrun.servlet;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import com.colorrun.dao.ParticipantDao;
-import com.colorrun.model.Participant;
 import com.colorrun.model.User;
 
-@WebServlet("/courses/*/inscription")
+@WebServlet("/course-inscription")
 public class CourseInscriptionServlet extends HttpServlet {
     private ParticipantDao participantDao;
 
     @Override
-    public void init() {
+    public void init() throws ServletException {
         System.out.println("CourseInscriptionServlet.init() - Démarrage");
         participantDao = new ParticipantDao();
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        System.out.println("CourseInscriptionServlet.doGet() - Début");
-        
-        // Vérifier si l'utilisateur est connecté
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
-        
-        if (user == null) {
-            System.out.println("CourseInscriptionServlet.doGet() - Utilisateur non connecté");
-            response.sendRedirect(request.getContextPath() + "/login");
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
-        // Récupérer l'ID de la course depuis l'URL
-        String pathInfo = request.getPathInfo();
-        System.out.println("CourseInscriptionServlet.doGet() - PathInfo: " + pathInfo);
-        
-        String[] pathParts = pathInfo.split("/");
-        if (pathParts.length < 2) {
-            System.out.println("CourseInscriptionServlet.doGet() - URL invalide");
-            response.sendRedirect(request.getContextPath() + "/courses");
+        String courseIdStr = req.getParameter("courseId");
+        if (courseIdStr == null) {
+            resp.sendRedirect(req.getContextPath() + "/courses");
             return;
         }
 
         try {
-            int courseId = Integer.parseInt(pathParts[1]);
-            System.out.println("CourseInscriptionServlet.doGet() - CourseId: " + courseId);
-            System.out.println("CourseInscriptionServlet.doGet() - UserId: " + user.getId());
-            
+            int courseId = Integer.parseInt(courseIdStr);
+            User user = (User) session.getAttribute("user");
+            System.out.println("CourseInscriptionServlet.doPost() - CourseId: " + courseId);
+            System.out.println("CourseInscriptionServlet.doPost() - UserId: " + user.getId());
+
             // Vérifier si l'utilisateur est déjà inscrit
-            if (participantDao.isUserRegistered(courseId, user.getId())) {
-                System.out.println("CourseInscriptionServlet.doGet() - Utilisateur déjà inscrit");
-                response.sendRedirect(request.getContextPath() + "/courses/" + courseId);
+            if (participantDao.isUserParticipating(user.getId(), courseId)) {
+                System.out.println("CourseInscriptionServlet.doPost() - Utilisateur déjà inscrit");
+                resp.sendRedirect(req.getContextPath() + "/course-details?id=" + courseId);
                 return;
             }
-            
-            // Créer le participant
-            Participant participant = new Participant();
-            participant.setCourseId(courseId);
-            participant.setUserId(user.getId());
-            
+
             // Ajouter le participant
-            System.out.println("CourseInscriptionServlet.doGet() - Ajout du participant");
-            participantDao.add(participant);
-            System.out.println("CourseInscriptionServlet.doGet() - Participant ajouté avec succès");
-            
+            System.out.println("CourseInscriptionServlet.doPost() - Ajout du participant");
+            participantDao.addParticipant(courseId, user.getId());
+            System.out.println("CourseInscriptionServlet.doPost() - Participant ajouté avec succès");
+
             // Rediriger vers la page de la course
-            response.sendRedirect(request.getContextPath() + "/courses/" + courseId);
+            resp.sendRedirect(req.getContextPath() + "/course-details?id=" + courseId);
         } catch (NumberFormatException e) {
-            System.out.println("CourseInscriptionServlet.doGet() - Erreur de format de l'ID: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/courses");
+            System.out.println("CourseInscriptionServlet.doPost() - Erreur de format de l'ID: " + e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/courses");
         } catch (Exception e) {
-            System.out.println("CourseInscriptionServlet.doGet() - Erreur inattendue: " + e.getMessage());
+            System.out.println("CourseInscriptionServlet.doPost() - Erreur inattendue: " + e.getMessage());
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         }
     }
-} 
+}
