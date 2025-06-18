@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon Profil - ColorRun</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"
+    />
+    <!-- Bootstrap Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <style>
+      :root {
+        --color-pink: #ff006a;
+        --color-orange: #ff6b00;
+        --color-light: #ffffff;
+        --color-bg: #f9f9fb;
+        --color-dark: #2c3e50;
+        --color-muted: #6c757d;
+      }
+
+      /* Global */
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--color-bg);
+        color: var(--color-dark);
+      }
+
+      /* Container */
+      .profile-container {
+        min-height: calc(100vh - 200px);
+        padding: 60px 0;
+      }
+
+      /* Card */
+      .profile-card {
+        background: var(--color-light);
+        border-radius: 20px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+
+      /* Header */
+      .profile-header {
+        background: linear-gradient(
+          90deg,
+          var(--color-pink),
+          var(--color-orange)
+        );
+        color: var(--color-light);
+        padding: 30px;
+        border-radius: 20px 20px 0 0;
+        text-align: center;
+      }
+
+      .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid var(--color-light);
+        object-fit: cover;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        margin-bottom: 15px;
+      }
+
+      /* Onglets */
+      .nav-pills .nav-link {
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: 500;
+        transition: 0.2s ease;
+        color: var(--color-dark);
+      }
+
+      .nav-pills .nav-link.active {
+        background: linear-gradient(
+          90deg,
+          var(--color-pink),
+          var(--color-orange)
+        );
+        color: var(--color-light);
+      }
+
+      /* Statistiques */
+      .stats-card {
+        border-radius: 15px;
+        padding: 20px;
+        background: var(--color-light);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+        text-align: center;
+      }
+
+      .stats-card i {
+        font-size: 28px;
+        margin-bottom: 10px;
+        color: var(--color-pink);
+      }
+
+      /* Race card */
+      .race-card {
+        border-radius: 15px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+      }
+
+      .race-card:hover {
+        transform: translateY(-5px);
+      }
+
+      /* Boutons */
+      .btn-primary {
+        background: linear-gradient(
+          90deg,
+          var(--color-pink),
+          var(--color-orange)
+        );
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 25px;
+        padding: 10px 25px;
+        transition: 0.3s ease;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(
+          90deg,
+          var(--color-orange),
+          var(--color-pink)
+        );
+        transform: translateY(-1px);
+      }
+
+      .btn-outline-primary {
+        border: 2px solid var(--color-pink);
+        color: var(--color-pink);
+        border-radius: 25px;
+        font-weight: 500;
+        transition: 0.3s ease;
+      }
+
+      .btn-outline-primary:hover {
+        background: var(--color-pink);
+        color: #fff;
+      }
+
+      .btn-outline-danger {
+        border-radius: 25px;
+        padding: 8px 20px;
+      }
+
+      /* Badges */
+      .badge-status {
+        padding: 6px 14px;
+        border-radius: 25px;
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+
+      .badge-status.completed {
+        background-color: #28a745;
+        color: #fff;
+      }
+
+      .badge-status.upcoming {
+        background-color: #ffc107;
+        color: #000;
+      }
+
+      /* Inputs */
+      .form-control {
+        border-radius: 25px;
+        padding: 0.75rem 1.25rem;
+        border: 2px solid #eee;
+      }
+
+      .form-control:focus {
+        border-color: var(--color-pink);
+        box-shadow: 0 0 0 0.2rem rgba(255, 0, 106, 0.2);
+      }
+
+      .form-check-input:checked {
+        background-color: var(--color-pink);
+        border-color: var(--color-pink);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- En-tête -->
+    <div th:replace="fragments/navbar.html :: body"></div>
+
+    <!-- Contenu principal -->
+    <div class="profile-container">
+      <div class="container">
+        <div class="profile-card">
+          <!-- En-tête du profil -->
+          <div class="profile-header text-center">
+            <img
+              th:src="${user.profilePicture}"
+              alt="Photo de profil"
+              class="profile-avatar mb-3"
+            />
+            <h2 th:text="${user.firstName + ' ' + user.lastName}">
+              Nom complet
+            </h2>
+            <p class="mb-0" th:text="${user.email}">Email</p>
+          </div>
+
+          <!-- Navigation -->
+          <div class="p-4">
+            <ul
+              class="nav nav-pills mb-4 justify-content-center"
+              role="tablist"
+            >
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  data-bs-toggle="pill"
+                  href="#overview"
+                  >Vue d'ensemble</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="pill" href="#races"
+                  >Mes courses</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="pill" href="#settings"
+                  >Paramètres</a
+                >
+              </li>
+            </ul>
+
+            <!-- Contenu des onglets -->
+            <div class="tab-content">
+              <!-- Vue d'ensemble -->
+              <div class="tab-pane fade show active" id="overview">
+                <div class="row g-4">
+                  <!-- Statistiques -->
+                  <div class="col-md-4">
+                    <div class="stats-card">
+                      <i class="bi bi-trophy"></i>
+                      <h3 th:text="${user.completedRaces}">5</h3>
+                      <p class="mb-0">Courses terminées</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="stats-card">
+                      <i class="bi bi-calendar-check"></i>
+                      <h3 th:text="${user.upcomingRaces}">2</h3>
+                      <p class="mb-0">Courses à venir</p>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="stats-card">
+                      <i class="bi bi-rulers"></i>
+                      <h3 th:text="${user.totalDistance + ' km'}">25 km</h3>
+                      <p class="mb-0">Distance totale</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Prochaine course -->
+                <div class="mt-4" th:if="${nextRace != null}">
+                  <h4 class="mb-3">Prochaine course</h4>
+                  <div class="card race-card">
+                    <div class="card-body">
+                      <div
+                        class="d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <h5 class="card-title" th:text="${nextRace.name}">
+                            Nom de la course
+                          </h5>
+                          <p class="card-text mb-0">
+                            <i class="bi bi-calendar-event me-2"></i>
+                            <span th:text="${nextRace.date}">Date</span>
+                          </p>
+                          <p class="card-text mb-0">
+                            <i class="bi bi-geo-alt me-2"></i>
+                            <span th:text="${nextRace.location}">Lieu</span>
+                          </p>
+                        </div>
+                        <a
+                          th:href="@{'/races/' + ${nextRace.id}}"
+                          class="btn btn-primary"
+                          >Voir les détails</a
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mes courses -->
+              <div class="tab-pane fade" id="races">
+                <div class="row g-4">
+                  <div class="col-md-6" th:each="race : ${userRaces}">
+                    <div class="card race-card">
+                      <div class="card-body">
+                        <div
+                          class="d-flex justify-content-between align-items-start mb-3"
+                        >
+                          <h5 class="card-title" th:text="${race.name}">
+                            Nom de la course
+                          </h5>
+                          <span
+                            th:class="${'badge badge-status ' + (race.completed ? 'completed' : 'upcoming')}"
+                            th:text="${race.completed ? 'Terminée' : 'À venir'}"
+                          >
+                            Status
+                          </span>
+                        </div>
+                        <p class="card-text mb-2">
+                          <i class="bi bi-calendar-event me-2"></i>
+                          <span th:text="${race.date}">Date</span>
+                        </p>
+                        <p class="card-text mb-2">
+                          <i class="bi bi-geo-alt me-2"></i>
+                          <span th:text="${race.location}">Lieu</span>
+                        </p>
+                        <p class="card-text mb-3">
+                          <i class="bi bi-rulers me-2"></i>
+                          <span th:text="${race.distance + ' km'}"
+                            >Distance</span
+                          >
+                        </p>
+                        <div
+                          class="d-flex justify-content-between align-items-center"
+                        >
+                          <a
+                            th:href="@{'/races/' + ${race.id}}"
+                            class="btn btn-outline-primary"
+                            >Voir les détails</a
+                          >
+                          <a
+                            th:if="${!race.completed}"
+                            th:href="@{'/races/' + ${race.id} + '/cancel'}"
+                            class="btn btn-outline-danger"
+                          >
+                            Annuler l'inscription
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paramètres -->
+              <div class="tab-pane fade" id="settings">
+                <form
+                  th:action="@{/profile/update}"
+                  method="post"
+                  th:object="${user}"
+                >
+                  <div class="row g-3">
+                    <!-- Informations personnelles -->
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="firstName"
+                          th:field="*{firstName}"
+                          required
+                        />
+                        <label for="firstName">Prénom</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="lastName"
+                          th:field="*{lastName}"
+                          required
+                        />
+                        <label for="lastName">Nom</label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="email"
+                          class="form-control"
+                          id="email"
+                          th:field="*{email}"
+                          required
+                        />
+                        <label for="email">Email</label>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="form-floating">
+                        <input
+                          type="tel"
+                          class="form-control"
+                          id="phone"
+                          th:field="*{phone}"
+                          required
+                        />
+                        <label for="phone">Téléphone</label>
+                      </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="col-12">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="address"
+                          th:field="*{address}"
+                          required
+                        />
+                        <label for="address">Adresse</label>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="postalCode"
+                          th:field="*{postalCode}"
+                          required
+                        />
+                        <label for="postalCode">Code postal</label>
+                      </div>
+                    </div>
+                    <div class="col-md-8">
+                      <div class="form-floating">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="city"
+                          th:field="*{city}"
+                          required
+                        />
+                        <label for="city">Ville</label>
+                      </div>
+                    </div>
+
+                    <!-- Préférences -->
+                    <div class="col-12">
+                      <div class="form-check">
+                        <input
+                          type="checkbox"
+                          class="form-check-input"
+                          id="newsletter"
+                          th:field="*{newsletter}"
+                        />
+                        <label class="form-check-label" for="newsletter">
+                          Je souhaite recevoir la newsletter
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <button type="submit" class="btn btn-primary">
+                        Enregistrer les modifications
+                      </button>
+                    </div>
+                  </div>
+                </form>
+
+                <!-- Changement de mot de passe -->
+                <div class="mt-5">
+                  <h4 class="mb-4">Changer le mot de passe</h4>
+                  <form th:action="@{/profile/password}" method="post">
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <div class="form-floating">
+                          <input
+                            type="password"
+                            class="form-control"
+                            id="currentPassword"
+                            name="currentPassword"
+                            required
+                          />
+                          <label for="currentPassword"
+                            >Mot de passe actuel</label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-floating">
+                          <input
+                            type="password"
+                            class="form-control"
+                            id="newPassword"
+                            name="newPassword"
+                            required
+                          />
+                          <label for="newPassword">Nouveau mot de passe</label>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="form-floating">
+                          <input
+                            type="password"
+                            class="form-control"
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            required
+                          />
+                          <label for="confirmPassword"
+                            >Confirmer le mot de passe</label
+                          >
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                          Changer le mot de passe
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pied de page -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- Scripts -->
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script
+      th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"
+    ></script>
+    <script th:inline="javascript">
+      // Obtenir le contexte de l'application depuis Thymeleaf
+      const contextPath = /*[[@{/}]]*/ "";
+
+      // Récupérer les données mockées du localStorage
+      const mockUser = JSON.parse(localStorage.getItem("mockUser"));
+      if (mockUser) {
+        // Mettre à jour les informations du profil
+        document.querySelector(".profile-avatar").src = mockUser.profilePicture;
+        document.querySelector(
+          ".profile-header h2"
+        ).textContent = `${mockUser.firstName} ${mockUser.lastName}`;
+        document.querySelector(".profile-header p").textContent =
+          mockUser.email;
+
+        // Mettre à jour les statistiques
+        document.querySelectorAll(".stats-card h3").forEach((stat, index) => {
+          switch (index) {
+            case 0:
+              stat.textContent = mockUser.completedRaces;
+              break;
+            case 1:
+              stat.textContent = mockUser.upcomingRaces;
+              break;
+            case 2:
+              stat.textContent = `${mockUser.totalDistance} km`;
+              break;
+          }
+        });
+
+        // Mettre à jour le formulaire des paramètres
+        document.getElementById("firstName").value = mockUser.firstName;
+        document.getElementById("lastName").value = mockUser.lastName;
+        document.getElementById("email").value = mockUser.email;
+        document.getElementById("phone").value = mockUser.phone;
+        document.getElementById("address").value = mockUser.address;
+        document.getElementById("postalCode").value = mockUser.postalCode;
+        document.getElementById("city").value = mockUser.city;
+        document.getElementById("newsletter").checked = mockUser.newsletter;
+      }
+
+      // Validation du formulaire de changement de mot de passe
+      document
+        .querySelector('form[action="' + contextPath + 'profile/password"]')
+        .addEventListener("submit", function (e) {
+          const newPassword = document.getElementById("newPassword");
+          const confirmPassword = document.getElementById("confirmPassword");
+
+          if (newPassword.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert("Les mots de passe ne correspondent pas");
+          }
+        });
+    </script>
+  </body>
+</html>

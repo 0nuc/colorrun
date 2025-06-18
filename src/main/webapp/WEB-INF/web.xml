@@ -49,5 +49,13 @@
     <servlet-name>CoursesServlet</servlet-name>
     <url-pattern>/courses</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <servlet-name>ProfileServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.ProfileServlet</servlet-class>
+</servlet>
+<servlet-mapping>
+    <servlet-name>ProfileServlet</servlet-name>
+    <url-pattern>/profile</url-pattern>
+</servlet-mapping>
 
 </web-app>

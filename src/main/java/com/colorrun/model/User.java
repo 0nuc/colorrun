@@ -8,6 +8,14 @@ public class User {
     private String password;
     private String role;
 
+    private String address;
+    private String postalCode;
+    private String city;
+    private boolean newsletter;
+    private String profilePicture;
+
+    private String phone;
+
     public User() {}
 
     public int getId() { return id; }
@@ -22,4 +30,37 @@ public class User {
     public void setPassword(String password) { this.password = password; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-} 
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getPostalCode() { return postalCode; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public boolean isNewsletter() { return newsletter; }
+    public void setNewsletter(boolean newsletter) { this.newsletter = newsletter; }
+
+    public String getProfilePicture() { return profilePicture; }
+    public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public int getCompletedRaces() {
+        // À remplacer par le vrai calcul plus tard
+        return 0;
+    }
+
+    public int getUpcomingRaces() {
+        // À remplacer par le vrai calcul plus tard
+        return 0;
+    }
+
+    public int getTotalDistance() {
+        // À remplacer par le vrai calcul plus tard
+        return 0;
+    }
+}

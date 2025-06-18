@@ -11,14 +11,30 @@ import java.util.Optional;
 import com.colorrun.model.User;
 
 public class UserDao {
-    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
-    private static final String USER = "sa";
+    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";    private static final String USER = "sa";
     private static final String PASS = "";
 
     static {
         try {
             Class.forName("org.h2.Driver");
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+    public void update(User user) {
+        String sql = "UPDATE users SET first_name=?, last_name=?, address=?, postal_code=?, city=?, newsletter=?, profile_picture=? WHERE id=?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getAddress());
+            ps.setString(4, user.getPostalCode());
+            ps.setString(5, user.getCity());
+            ps.setBoolean(6, user.isNewsletter());
+            ps.setString(7, user.getProfilePicture());
+            ps.setInt(8, user.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -58,6 +74,12 @@ public class UserDao {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
                 user.setRole(rs.getString("role"));
+                // Champs optionnels
+                try { user.setAddress(rs.getString("address")); } catch (SQLException ignore) {}
+                try { user.setPostalCode(rs.getString("postal_code")); } catch (SQLException ignore) {}
+                try { user.setCity(rs.getString("city")); } catch (SQLException ignore) {}
+                try { user.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
+                try { user.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
                 System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec le rôle: " + user.getRole());
                 return user;
             }
@@ -115,6 +137,12 @@ public class UserDao {
                 u.setEmail(rs.getString("email"));
                 u.setPassword(rs.getString("password"));
                 u.setRole(rs.getString("role"));
+                // Champs optionnels
+                try { u.setAddress(rs.getString("address")); } catch (SQLException ignore) {}
+                try { u.setPostalCode(rs.getString("postal_code")); } catch (SQLException ignore) {}
+                try { u.setCity(rs.getString("city")); } catch (SQLException ignore) {}
+                try { u.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
+                try { u.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
                 return Optional.of(u);
             }
         } catch (SQLException e) {
@@ -122,6 +150,7 @@ public class UserDao {
         }
         return Optional.empty();
     }
+
 
     private void createTables(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
