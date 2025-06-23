@@ -275,6 +275,14 @@
       </div>
 
       <!-- Liste des courses -->
+      <div
+        class="d-flex justify-content-end mb-3"
+        th:if="${user != null and user.role == 'ORGANISATEUR'}"
+      >
+        <a class="btn btn-success" th:href="@{/courses/create}">
+          <i class="bi bi-plus-lg"></i> Créer une course
+        </a>
+      </div>
       <div class="row">
         <div
           class="col-12"

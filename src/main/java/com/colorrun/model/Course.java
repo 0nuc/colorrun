@@ -13,6 +13,7 @@ public class Course {
     private double prix;
     private boolean avecObstacles;
     private String causeSoutenue;
+    private int organisateurId;
 
     public Course() {}
 
@@ -42,6 +43,7 @@ public class Course {
     public double getPrix() { return prix; }
     public boolean isAvecObstacles() { return avecObstacles; }
     public String getCauseSoutenue() { return causeSoutenue; }
+    public int getOrganisateurId() { return organisateurId; }
 
     // Setters
     public void setId(int id) { this.id = id; }
@@ -54,4 +56,5 @@ public class Course {
     public void setPrix(double prix) { this.prix = prix; }
     public void setAvecObstacles(boolean avecObstacles) { this.avecObstacles = avecObstacles; }
     public void setCauseSoutenue(String causeSoutenue) { this.causeSoutenue = causeSoutenue; }
+    public void setOrganisateurId(int organisateurId) { this.organisateurId = organisateurId; }
 } 

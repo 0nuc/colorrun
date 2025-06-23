@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title
+      th:text="${course != null} ? 'Modifier la course' : 'Créer une course'"
+    >
+      Créer/Modifier une course
+    </title>
+    <link
+      rel="stylesheet"
+      th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+  </head>
+  <body>
+    <div th:replace="fragments/navbar.html :: body"></div>
+    <section class="container py-5">
+      <h2
+        th:text="${course != null} ? 'Modifier la course' : 'Créer une course'"
+      ></h2>
+      <form
+        th:action="${course != null} ? @{'/courses/edit/' + ${course.id}} : @{/courses/create}"
+        method="post"
+      >
+        <div class="mb-3">
+          <label for="nom" class="form-label">Nom de la course</label>
+          <input
+            type="text"
+            class="form-control"
+            id="nom"
+            name="nom"
+            th:value="${course != null} ? ${course.nom} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Description</label>
+          <textarea
+            class="form-control"
+            id="description"
+            name="description"
+            rows="3"
+            required
+            th:text="${course != null} ? ${course.description} : ''"
+          ></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="dateHeure" class="form-label">Date et heure</label>
+          <input
+            type="datetime-local"
+            class="form-control"
+            id="dateHeure"
+            name="dateHeure"
+            th:value="${course != null} ? ${course.dateHeure} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="lieu" class="form-label">Lieu</label>
+          <input
+            type="text"
+            class="form-control"
+            id="lieu"
+            name="lieu"
+            th:value="${course != null} ? ${course.lieu} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="distance" class="form-label">Distance (km)</label>
+          <input
+            type="number"
+            class="form-control"
+            id="distance"
+            name="distance"
+            min="1"
+            th:value="${course != null} ? ${course.distance} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="maxParticipants" class="form-label"
+            >Participants max</label
+          >
+          <input
+            type="number"
+            class="form-control"
+            id="maxParticipants"
+            name="maxParticipants"
+            min="1"
+            th:value="${course != null} ? ${course.maxParticipants} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label for="prix" class="form-label">Prix (€)</label>
+          <input
+            type="number"
+            step="0.01"
+            class="form-control"
+            id="prix"
+            name="prix"
+            min="0"
+            th:value="${course != null} ? ${course.prix} : ''"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Avec obstacles ?</label>
+          <select class="form-select" name="avecObstacles" id="avecObstacles">
+            <option
+              value="true"
+              th:selected="${course != null and course.avecObstacles}"
+            >
+              Oui
+            </option>
+            <option
+              value="false"
+              th:selected="${course != null and !course.avecObstacles}"
+            >
+              Non
+            </option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="causeSoutenue" class="form-label">Cause soutenue</label>
+          <input
+            type="text"
+            class="form-control"
+            id="causeSoutenue"
+            name="causeSoutenue"
+            th:value="${course != null} ? ${course.causeSoutenue} : ''"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Valider</button>
+        <a href="/ColorRun2_war/courses" class="btn btn-secondary">Annuler</a>
+      </form>
+    </section>
+    <div th:replace="fragments/footer :: footer"></div>
+    <script
+      th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"
+    ></script>
+  </body>
+</html>

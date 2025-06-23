@@ -46,7 +46,7 @@ public class CourseDao {
 
     private void createTables(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
-            // Création de la table users si elle n'existe pas
+            // Table users
             stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "first_name VARCHAR(50) NOT NULL, " +
@@ -58,30 +58,39 @@ public class CourseDao {
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
                     ")");
 
-            // Création de la table course si elle n'existe pas
+            // Table course
             stmt.execute("CREATE TABLE IF NOT EXISTS course (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "name VARCHAR(100) NOT NULL, " +
+                    "nom VARCHAR(100) NOT NULL, " +
                     "description TEXT, " +
                     "date_heure TIMESTAMP NOT NULL, " +
                     "lieu VARCHAR(255) NOT NULL, " +
-                    "distance DECIMAL(5,2) NOT NULL, " +
+                    "distance INT NOT NULL, " +
                     "max_participants INT NOT NULL, " +
                     "prix DECIMAL(10,2) NOT NULL, " +
+                    "avec_obstacles BOOLEAN DEFAULT FALSE, " +
+                    "cause_soutenue VARCHAR(200), " +
                     "organisateur_id INT, " +
                     "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
                     "FOREIGN KEY (organisateur_id) REFERENCES users(id)" +
                     ")");
 
-            // Création de la table participants si elle n'existe pas
+            // Ajout colonne organisateur_id si elle n'existe pas déjà
+            try {
+                stmt.execute("ALTER TABLE course ADD COLUMN organisateur_id INT");
+            } catch (SQLException e) {
+                // Ignore si déjà existante
+            }
+
+            // Table participants
             stmt.execute("CREATE TABLE IF NOT EXISTS participants (" +
                     "id INT AUTO_INCREMENT PRIMARY KEY, " +
                     "course_id INT NOT NULL, " +
                     "user_id INT NOT NULL, " +
                     "date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
+                    "CONSTRAINT unique_participation UNIQUE(course_id, user_id), " +
                     "FOREIGN KEY (course_id) REFERENCES course(id), " +
-                    "FOREIGN KEY (user_id) REFERENCES users(id), " +
-                    "UNIQUE(course_id, user_id)" +
+                    "FOREIGN KEY (user_id) REFERENCES users(id)" +
                     ")");
         }
     }
@@ -188,6 +197,7 @@ public class CourseDao {
                 course.setPrix(rs.getDouble("prix"));
                 course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
                 course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
                 courses.add(course);
             }
         } catch (SQLException e) {
@@ -253,6 +263,7 @@ public class CourseDao {
                 course.setPrix(rs.getDouble("prix"));
                 course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
                 course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
                 courses.add(course);
             }
         } catch (SQLException e) {
@@ -282,6 +293,7 @@ public class CourseDao {
                 course.setPrix(rs.getDouble("prix"));
                 course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
                 course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
                 courses.add(course);
             }
         } catch (SQLException e) {
@@ -296,18 +308,19 @@ public class CourseDao {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Course(
-                    rs.getInt("id"),
-                    rs.getString("nom"),
-                    rs.getString("description"),
-                    rs.getTimestamp("date_heure").toLocalDateTime(),
-                    rs.getString("lieu"),
-                    rs.getInt("distance"),
-                    rs.getInt("max_participants"),
-                    rs.getDouble("prix"),
-                    rs.getBoolean("avec_obstacles"),
-                    rs.getString("cause_soutenue")
-                );
+                Course course = new Course();
+                course.setId(rs.getInt("id"));
+                course.setNom(rs.getString("nom"));
+                course.setDescription(rs.getString("description"));
+                course.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                course.setLieu(rs.getString("lieu"));
+                course.setDistance(rs.getInt("distance"));
+                course.setMaxParticipants(rs.getInt("max_participants"));
+                course.setPrix(rs.getDouble("prix"));
+                course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
+                course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
+                return course;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -318,8 +331,8 @@ public class CourseDao {
     public void save(Course course) {
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO course(nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                     "INSERT INTO course(nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue, organisateur_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, course.getNom());
             ps.setString(2, course.getDescription());
             ps.setTimestamp(3, java.sql.Timestamp.valueOf(course.getDateHeure()));
@@ -329,6 +342,7 @@ public class CourseDao {
             ps.setDouble(7, course.getPrix());
             ps.setBoolean(8, course.isAvecObstacles());
             ps.setString(9, course.getCauseSoutenue());
+            ps.setInt(10, course.getOrganisateurId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -340,6 +354,27 @@ public class CourseDao {
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void update(Course course) {
+        String sql = "UPDATE course SET nom=?, description=?, date_heure=?, lieu=?, distance=?, max_participants=?, prix=?, avec_obstacles=?, cause_soutenue=?, organisateur_id=? WHERE id=?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, course.getNom());
+            ps.setString(2, course.getDescription());
+            ps.setTimestamp(3, java.sql.Timestamp.valueOf(course.getDateHeure()));
+            ps.setString(4, course.getLieu());
+            ps.setInt(5, course.getDistance());
+            ps.setInt(6, course.getMaxParticipants());
+            ps.setDouble(7, course.getPrix());
+            ps.setBoolean(8, course.isAvecObstacles());
+            ps.setString(9, course.getCauseSoutenue());
+            ps.setInt(10, course.getOrganisateurId());
+            ps.setInt(11, course.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
