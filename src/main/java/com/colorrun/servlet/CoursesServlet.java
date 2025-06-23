@@ -42,15 +42,25 @@ public class CoursesServlet extends HttpServlet {
             TemplateEngine engine = new TemplateEngine();
             engine.setTemplateResolver(resolver);
 
+            // Récupération des filtres
+            String date = req.getParameter("date");
+            String ville = req.getParameter("ville");
+            String distance = req.getParameter("distance");
+            String tri = req.getParameter("tri");
+
             // Récupération des courses depuis la BDD
             System.out.println("Récupération des courses...");
-            List<Course> courses = courseDao.findAll();
+            List<Course> courses = courseDao.findWithFilters(date, ville, distance, tri);
             System.out.println("Nombre de courses trouvées : " + courses.size());
 
             // Passage des données à la vue
             System.out.println("Préparation du contexte...");
             WebContext ctx = new WebContext(req, resp, getServletContext(), req.getLocale());
             ctx.setVariable("courses", courses);
+            ctx.setVariable("dateFilter", date);
+            ctx.setVariable("villeFilter", ville);
+            ctx.setVariable("distanceFilter", distance);
+            ctx.setVariable("triFilter", tri);
             HttpSession session = req.getSession(false);
             if (session != null) {
                 ctx.setVariable("user", session.getAttribute("user"));

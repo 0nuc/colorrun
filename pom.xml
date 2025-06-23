@@ -51,6 +51,35 @@
       <artifactId>jakarta.transaction-api</artifactId>
       <version>2.0.0</version>
     </dependency>
+
+    <!-- WebJars for Bootstrap -->
+    <dependency>
+      <groupId>org.webjars</groupId>
+      <artifactId>bootstrap</artifactId>
+      <version>5.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.webjars</groupId>
+      <artifactId>jquery</artifactId>
+      <version>3.7.1</version>
+    </dependency>
+
+    <!-- iText PDF Generation -->
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>kernel</artifactId>
+      <version>7.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>io</artifactId>
+      <version>7.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.itextpdf</groupId>
+      <artifactId>layout</artifactId>
+      <version>7.2.5</version>
+    </dependency>
   </dependencies>
 
   <build>

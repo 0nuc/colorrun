@@ -52,10 +52,71 @@
   <servlet>
     <servlet-name>ProfileServlet</servlet-name>
     <servlet-class>com.colorrun.servlet.ProfileServlet</servlet-class>
-</servlet>
-<servlet-mapping>
+  </servlet>
+  <servlet-mapping>
     <servlet-name>ProfileServlet</servlet-name>
     <url-pattern>/profile</url-pattern>
-</servlet-mapping>
+  </servlet-mapping>
+
+  <!-- CourseDetails Servlet -->
+  <servlet>
+    <servlet-name>CourseDetailsServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.CourseDetailsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CourseDetailsServlet</servlet-name>
+    <url-pattern>/courses/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- CourseInscription Servlet -->
+  <servlet>
+    <servlet-name>CourseInscriptionServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.CourseInscriptionServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CourseInscriptionServlet</servlet-name>
+    <url-pattern>/inscription/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- BecomeOrganizer Servlet -->
+  <servlet>
+    <servlet-name>BecomeOrganizerServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.BecomeOrganizerServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BecomeOrganizerServlet</servlet-name>
+    <url-pattern>/become-organizer</url-pattern>
+  </servlet-mapping>
+
+  <!-- Admin Servlet -->
+  <servlet>
+    <servlet-name>AdminServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.AdminServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminServlet</servlet-name>
+    <url-pattern>/admin/dashboard</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminServlet</servlet-name>
+    <url-pattern>/admin/requests</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>AdminServlet</servlet-name>
+    <url-pattern>/admin</url-pattern>
+  </servlet-mapping>
+
+  <!-- AdminUsers Servlet -->
+  <!-- SUPPRIMÉ : plus besoin de ce servlet ni de son mapping -->
+  <!--
+  <servlet>
+    <servlet-name>AdminUsersServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.AdminUsersServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminUsersServlet</servlet-name>
+    <url-pattern>/admin/users</url-pattern>
+  </servlet-mapping>
+  -->
 
 </web-app>

@@ -170,7 +170,7 @@
           <div class="text-center">
             <a
               th:if="${user != null and !estInscrit}"
-              th:href="@{/courses/{id}/inscription(id=${course.id})}"
+              th:href="@{/inscription/{id}(id=${course.id})}"
               class="btn-inscription"
             >
               S'inscrire à la course

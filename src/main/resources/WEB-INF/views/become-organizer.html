@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Devenir Organisateur - ColorRun</title>
+    <link
+      rel="stylesheet"
+      th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .container {
+        max-width: 700px;
+        margin-top: 5rem;
+      }
+      .card {
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background: linear-gradient(90deg, #ff006a, #ff6b00);
+        color: white;
+        border-radius: 1rem 1rem 0 0;
+        text-align: center;
+        padding: 1.5rem;
+      }
+      .btn-custom {
+        background: linear-gradient(90deg, #ff006a, #ff6b00);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50rem;
+        transition: all 0.3s ease;
+      }
+      .btn-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      }
+    </style>
+  </head>
+  <body>
+    <div th:replace="fragments/navbar.html :: body"></div>
+
+    <div class="container">
+      <div class="card">
+        <div class="card-header">
+          <h2>Devenir un organisateur ColorRun</h2>
+        </div>
+        <div class="card-body p-4">
+          <div
+            th:if="${successMessage}"
+            class="alert alert-success"
+            th:text="${successMessage}"
+          ></div>
+          <div
+            th:if="${errorMessage}"
+            class="alert alert-danger"
+            th:text="${errorMessage}"
+          ></div>
+
+          <p class="text-muted">
+            Vous souhaitez organiser votre propre ColorRun ? Expliquez-nous vos
+            motivations. Votre demande sera examinée par nos administrateurs.
+          </p>
+
+          <form th:action="@{/become-organizer}" method="post">
+            <div class="mb-3">
+              <label for="motivation" class="form-label">Vos motivations</label>
+              <textarea
+                class="form-control"
+                id="motivation"
+                name="motivation"
+                rows="6"
+                required
+                placeholder="Pourquoi voulez-vous nous rejoindre ? Quel est votre projet ?"
+              ></textarea>
+            </div>
+            <div class="text-center">
+              <button type="submit" class="btn btn-custom">
+                Envoyer ma demande
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script
+      th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"
+    ></script>
+  </body>
+</html>

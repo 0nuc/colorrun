@@ -23,6 +23,20 @@
             <li class="nav-item">
               <a class="nav-link" href="courses">Courses</a>
             </li>
+            <li
+              class="nav-item"
+              th:if="${user != null and user.role == 'PARTICIPANT'}"
+            >
+              <a class="nav-link" href="/ColorRun2_war/become-organizer"
+                >Devenir Organisateur</a
+              >
+            </li>
+            <li
+              class="nav-item"
+              th:if="${user != null and user.role == 'ADMIN'}"
+            >
+              <a class="nav-link" href="/ColorRun2_war/admin">Admin</a>
+            </li>
           </ul>
           <div class="navbar-nav ms-auto">
             <th:block th:if="${user != null}">

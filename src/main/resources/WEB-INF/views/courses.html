@@ -233,6 +233,7 @@
               name="date"
               class="form-control"
               placeholder="Date"
+              th:value="${dateFilter}"
             />
           </div>
           <div class="col-md-3">
@@ -241,6 +242,7 @@
               name="ville"
               class="form-control"
               placeholder="Ville"
+              th:value="${villeFilter}"
             />
           </div>
           <div class="col-md-3">
@@ -249,14 +251,21 @@
               name="distance"
               class="form-control"
               placeholder="Distance (km)"
+              th:value="${distanceFilter}"
             />
           </div>
           <div class="col-md-3">
             <select name="tri" class="form-select">
               <option value="">Trier par...</option>
-              <option value="date">Date</option>
-              <option value="ville">Ville</option>
-              <option value="distance">Distance</option>
+              <option value="date" th:selected="${triFilter == 'date'}">
+                Date
+              </option>
+              <option value="ville" th:selected="${triFilter == 'ville'}">
+                Ville
+              </option>
+              <option value="distance" th:selected="${triFilter == 'distance'}">
+                Distance
+              </option>
             </select>
           </div>
           <div class="col-12 text-center">

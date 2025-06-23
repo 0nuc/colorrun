@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import com.colorrun.model.User;
@@ -151,6 +153,61 @@ public class UserDao {
         return Optional.empty();
     }
 
+    public void updatePassword(int userId, String newPassword) {
+        String sql = "UPDATE users SET password=? WHERE id=?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newPassword);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateUserRole(int userId, String role) {
+        String sql = "UPDATE users SET role = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, role);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users ORDER BY last_name, first_name";
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setFirstName(rs.getString("first_name"));
+                user.setLastName(rs.getString("last_name"));
+                user.setEmail(rs.getString("email"));
+                user.setRole(rs.getString("role"));
+                users.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public void delete(int userId) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void createTables(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
@@ -162,7 +219,13 @@ public class UserDao {
                     last_name VARCHAR(100) NOT NULL,
                     email VARCHAR(255) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
-                    role VARCHAR(20) NOT NULL
+                    role VARCHAR(20) NOT NULL,
+                    address VARCHAR(255),
+                    postal_code VARCHAR(20),
+                    city VARCHAR(100),
+                    newsletter BOOLEAN DEFAULT FALSE,
+                    profile_picture VARCHAR(255),
+                    phone VARCHAR(30)
                 );
                 
                 CREATE TABLE IF NOT EXISTS course (
@@ -195,6 +258,15 @@ public class UserDao {
                     FOREIGN KEY (course_id) REFERENCES course(id),
                     FOREIGN KEY (user_id) REFERENCES users(id),
                     UNIQUE (course_id, user_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS organizer_requests (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    motivation TEXT NOT NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+                    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                 );
             """);
         }

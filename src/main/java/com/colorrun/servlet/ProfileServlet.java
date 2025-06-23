@@ -3,6 +3,8 @@ package com.colorrun.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -16,7 +18,9 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import com.colorrun.dao.CourseDao;
 import com.colorrun.dao.UserDao;
+import com.colorrun.model.Course;
 import com.colorrun.model.User;
 
 @MultipartConfig(
@@ -27,6 +31,12 @@ import com.colorrun.model.User;
 public class ProfileServlet extends HttpServlet {
 
     private static final String UPLOAD_DIR = "uploads";
+    private CourseDao courseDao;
+
+    @Override
+    public void init() throws ServletException {
+        courseDao = new CourseDao();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,7 +51,43 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
+        System.out.println("[ProfileServlet] User values before rendering:");
+        System.out.println("  id=" + user.getId());
+        System.out.println("  firstName=" + user.getFirstName());
+        System.out.println("  lastName=" + user.getLastName());
+        System.out.println("  email=" + user.getEmail());
+        System.out.println("  phone=" + user.getPhone());
+        System.out.println("  address=" + user.getAddress());
+        System.out.println("  postalCode=" + user.getPostalCode());
+        System.out.println("  city=" + user.getCity());
+        System.out.println("  newsletter=" + user.isNewsletter());
+        System.out.println("  profilePicture=" + user.getProfilePicture());
+
+        String successMessage = (String) request.getAttribute("successMessage");
         System.out.println("[ProfileServlet] Rendering profile for user: " + user.getEmail());
+
+        List<Course> userRaces = courseDao.findCoursesByUserId(user.getId());
+
+        // Calcul des statistiques
+        int completedRaces = 0;
+        int upcomingRaces = 0;
+        int totalDistance = 0;
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Course race : userRaces) {
+            if (race.getDateHeure() != null) {
+                if (race.getDateHeure().isBefore(now)) {
+                    completedRaces++;
+                    totalDistance += race.getDistance();
+                } else {
+                    upcomingRaces++;
+                }
+            }
+        }
+        user.setCompletedRaces(completedRaces);
+        user.setUpcomingRaces(upcomingRaces);
+        user.setTotalDistance(totalDistance);
+
         try {
             ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
             resolver.setPrefix("/WEB-INF/views/");
@@ -53,6 +99,11 @@ public class ProfileServlet extends HttpServlet {
 
             WebContext ctx = new WebContext(request, response, getServletContext(), request.getLocale());
             ctx.setVariable("user", user);
+            ctx.setVariable("userRaces", userRaces);
+            ctx.setVariable("now", now);
+            if (successMessage != null) {
+                ctx.setVariable("successMessage", successMessage);
+            }
             response.setCharacterEncoding("UTF-8");
             engine.process("profil", ctx, response.getWriter());
             System.out.println("[ProfileServlet] Profile page rendered successfully");
@@ -66,13 +117,27 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        System.out.println("[ProfileServlet] doPost called");
         HttpSession session = request.getSession(false);
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
+            System.out.println("[ProfileServlet] No user in session, redirecting to login");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
+
+        System.out.println("[ProfileServlet] User values before update:");
+        System.out.println("  id=" + user.getId());
+        System.out.println("  firstName=" + user.getFirstName());
+        System.out.println("  lastName=" + user.getLastName());
+        System.out.println("  email=" + user.getEmail());
+        System.out.println("  phone=" + user.getPhone());
+        System.out.println("  address=" + user.getAddress());
+        System.out.println("  postalCode=" + user.getPostalCode());
+        System.out.println("  city=" + user.getCity());
+        System.out.println("  newsletter=" + user.isNewsletter());
+        System.out.println("  profilePicture=" + user.getProfilePicture());
 
         if (request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
             Part filePart = request.getPart("profilePicture");
@@ -89,17 +154,45 @@ public class ProfileServlet extends HttpServlet {
             }
         }
 
-        user.setFirstName(request.getParameter("firstName"));
-        user.setLastName(request.getParameter("lastName"));
-        user.setAddress(request.getParameter("address"));
-        user.setPostalCode(request.getParameter("postalCode"));
-        user.setCity(request.getParameter("city"));
-        user.setNewsletter(request.getParameter("newsletter") != null);
-
         UserDao userDao = new UserDao();
-        userDao.update(user);
-
-        session.setAttribute("user", user);
-        response.sendRedirect(request.getContextPath() + "/profile");
+        String newPassword = request.getParameter("newPassword");
+        boolean passwordChanged = false;
+        if (newPassword != null && !newPassword.isEmpty()) {
+            // Changement de mot de passe uniquement
+            try {
+                userDao.updatePassword(user.getId(), newPassword);
+                user.setPassword(newPassword);
+                passwordChanged = true;
+                request.setAttribute("successMessage", "Mot de passe modifié !");
+            } catch (Exception e) {
+                request.setAttribute("errorMessage", "Erreur lors de la modification du mot de passe.");
+            }
+        } else {
+            // Mise à jour des autres infos
+            User updatedUser = new User();
+            updatedUser.setId(user.getId());
+            updatedUser.setEmail(user.getEmail());
+            updatedUser.setFirstName(request.getParameter("firstName"));
+            updatedUser.setLastName(request.getParameter("lastName"));
+            updatedUser.setAddress(request.getParameter("address"));
+            updatedUser.setPostalCode(request.getParameter("postalCode"));
+            updatedUser.setCity(request.getParameter("city"));
+            updatedUser.setNewsletter(request.getParameter("newsletter") != null);
+            updatedUser.setPhone(request.getParameter("phone"));
+            updatedUser.setProfilePicture(user.getProfilePicture());
+            updatedUser.setRole(user.getRole());
+            updatedUser.setPassword(user.getPassword());
+            try {
+                userDao.update(updatedUser);
+                session.setAttribute("user", updatedUser);
+                request.setAttribute("successMessage", "Profil mis à jour avec succès !");
+            } catch (Exception e) {
+                // Si erreur, on recharge l'utilisateur depuis la base pour garder des valeurs cohérentes
+                User freshUser = userDao.findByEmail(user.getEmail());
+                session.setAttribute("user", freshUser);
+                request.setAttribute("errorMessage", "Erreur lors de la mise à jour du profil (colonne manquante ?).");
+            }
+        }
+        doGet(request, response);
     }
 }

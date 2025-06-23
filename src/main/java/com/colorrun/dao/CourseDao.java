@@ -196,6 +196,100 @@ public class CourseDao {
         return courses;
     }
 
+    public List<Course> findWithFilters(String date, String ville, String distance, String tri) {
+        List<Course> courses = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM course WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (date != null && !date.isEmpty()) {
+            sql.append(" AND DATE(date_heure) = ?");
+            params.add(date);
+        }
+
+        if (ville != null && !ville.isEmpty()) {
+            sql.append(" AND LOWER(lieu) LIKE ?");
+            params.add("%" + ville.toLowerCase() + "%");
+        }
+
+        if (distance != null && !distance.isEmpty()) {
+            sql.append(" AND distance <= ?");
+            params.add(Integer.parseInt(distance));
+        }
+
+        if (tri != null && !tri.isEmpty()) {
+            switch (tri) {
+                case "date":
+                    sql.append(" ORDER BY date_heure");
+                    break;
+                case "ville":
+                    sql.append(" ORDER BY lieu");
+                    break;
+                case "distance":
+                    sql.append(" ORDER BY distance");
+                    break;
+            }
+        } else {
+            sql.append(" ORDER BY date_heure");
+        }
+
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Course course = new Course();
+                course.setId(rs.getInt("id"));
+                course.setNom(rs.getString("nom"));
+                course.setDescription(rs.getString("description"));
+                course.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                course.setLieu(rs.getString("lieu"));
+                course.setDistance(rs.getInt("distance"));
+                course.setMaxParticipants(rs.getInt("max_participants"));
+                course.setPrix(rs.getDouble("prix"));
+                course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
+                course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return courses;
+    }
+
+    public List<Course> findCoursesByUserId(int userId) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT c.* FROM course c " +
+                "JOIN participants p ON c.id = p.course_id " +
+                "WHERE p.user_id = ? ORDER BY c.date_heure DESC";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Course course = new Course();
+                course.setId(rs.getInt("id"));
+                course.setNom(rs.getString("nom"));
+                course.setDescription(rs.getString("description"));
+                course.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                course.setLieu(rs.getString("lieu"));
+                course.setDistance(rs.getInt("distance"));
+                course.setMaxParticipants(rs.getInt("max_participants"));
+                course.setPrix(rs.getDouble("prix"));
+                course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
+                course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return courses;
+    }
+
     public Course findById(int id) {
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM course WHERE id = ?")) {
@@ -235,6 +329,17 @@ public class CourseDao {
             ps.setDouble(7, course.getPrix());
             ps.setBoolean(8, course.isAvecObstacles());
             ps.setString(9, course.getCauseSoutenue());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int id) {
+        String sql = "DELETE FROM course WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

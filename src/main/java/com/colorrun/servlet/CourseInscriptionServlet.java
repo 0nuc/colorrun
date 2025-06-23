@@ -3,24 +3,29 @@ package com.colorrun.servlet;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.colorrun.dao.CourseDao;
 import com.colorrun.dao.ParticipantDao;
+import com.colorrun.model.Course;
 import com.colorrun.model.Participant;
 import com.colorrun.model.User;
+import com.colorrun.service.BibService;
 
-@WebServlet("/courses/*/inscription")
 public class CourseInscriptionServlet extends HttpServlet {
     private ParticipantDao participantDao;
+    private CourseDao courseDao;
+    private BibService bibService;
 
     @Override
     public void init() {
         System.out.println("CourseInscriptionServlet.init() - Démarrage");
         participantDao = new ParticipantDao();
+        courseDao = new CourseDao();
+        bibService = new BibService();
     }
 
     @Override
@@ -29,14 +34,13 @@ public class CourseInscriptionServlet extends HttpServlet {
         System.out.println("CourseInscriptionServlet.doGet() - Début");
         
         // Vérifier si l'utilisateur est connecté
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
-        
-        if (user == null) {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
             System.out.println("CourseInscriptionServlet.doGet() - Utilisateur non connecté");
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
+        User user = (User) session.getAttribute("user");
 
         // Récupérer l'ID de la course depuis l'URL
         String pathInfo = request.getPathInfo();
@@ -52,12 +56,19 @@ public class CourseInscriptionServlet extends HttpServlet {
         try {
             int courseId = Integer.parseInt(pathParts[1]);
             System.out.println("CourseInscriptionServlet.doGet() - CourseId: " + courseId);
-            System.out.println("CourseInscriptionServlet.doGet() - UserId: " + user.getId());
-            
+
             // Vérifier si l'utilisateur est déjà inscrit
             if (participantDao.isUserRegistered(courseId, user.getId())) {
                 System.out.println("CourseInscriptionServlet.doGet() - Utilisateur déjà inscrit");
-                response.sendRedirect(request.getContextPath() + "/courses/" + courseId);
+                response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=alreadyRegistered");
+                return;
+            }
+
+            // Récupérer les détails de la course
+            Course course = courseDao.findById(courseId);
+            if (course == null) {
+                System.out.println("CourseInscriptionServlet.doGet() - Course non trouvée");
+                response.sendRedirect(request.getContextPath() + "/courses");
                 return;
             }
             
@@ -66,13 +77,27 @@ public class CourseInscriptionServlet extends HttpServlet {
             participant.setCourseId(courseId);
             participant.setUserId(user.getId());
             
-            // Ajouter le participant
-            System.out.println("CourseInscriptionServlet.doGet() - Ajout du participant");
-            participantDao.add(participant);
-            System.out.println("CourseInscriptionServlet.doGet() - Participant ajouté avec succès");
+            // Ajouter le participant et récupérer l'objet avec l'ID
+            Participant newParticipant = participantDao.add(participant);
+            if (newParticipant == null || newParticipant.getId() == 0) {
+                 System.out.println("CourseInscriptionServlet.doGet() - Erreur lors de l'ajout du participant");
+                 response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=registrationFailed");
+                 return;
+            }
+            System.out.println("CourseInscriptionServlet.doGet() - Participant ajouté avec succès avec l'ID: " + newParticipant.getId());
             
-            // Rediriger vers la page de la course
-            response.sendRedirect(request.getContextPath() + "/courses/" + courseId);
+            // Générer le PDF
+            byte[] pdfBytes = bibService.generateBibPdf(user, course, newParticipant);
+
+            // Configurer la réponse pour le téléchargement du PDF
+            response.setContentType("application/pdf");
+            response.setContentLength(pdfBytes.length);
+            String filename = "dossard-" + course.getNom().replaceAll("\\s+", "_") + "-" + user.getLastName() + ".pdf";
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
+            // Écrire le PDF dans la réponse
+            response.getOutputStream().write(pdfBytes);
+
         } catch (NumberFormatException e) {
             System.out.println("CourseInscriptionServlet.doGet() - Erreur de format de l'ID: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/courses");

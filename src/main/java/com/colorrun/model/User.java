@@ -16,6 +16,11 @@ public class User {
 
     private String phone;
 
+    // Champs pour les statistiques
+    private int completedRaces;
+    private int upcomingRaces;
+    private int totalDistance;
+
     public User() {}
 
     public int getId() { return id; }
@@ -50,17 +55,26 @@ public class User {
     public void setPhone(String phone) { this.phone = phone; }
 
     public int getCompletedRaces() {
-        // À remplacer par le vrai calcul plus tard
-        return 0;
+        return completedRaces;
+    }
+
+    public void setCompletedRaces(int completedRaces) {
+        this.completedRaces = completedRaces;
     }
 
     public int getUpcomingRaces() {
-        // À remplacer par le vrai calcul plus tard
-        return 0;
+        return upcomingRaces;
+    }
+
+    public void setUpcomingRaces(int upcomingRaces) {
+        this.upcomingRaces = upcomingRaces;
     }
 
     public int getTotalDistance() {
-        // À remplacer par le vrai calcul plus tard
-        return 0;
+        return totalDistance;
+    }
+
+    public void setTotalDistance(int totalDistance) {
+        this.totalDistance = totalDistance;
     }
 }

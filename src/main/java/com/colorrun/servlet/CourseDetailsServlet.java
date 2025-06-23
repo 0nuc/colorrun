@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +20,6 @@ import com.colorrun.model.Course;
 import com.colorrun.model.Participant;
 import com.colorrun.model.User;
 
-@WebServlet("/courses/*")
 public class CourseDetailsServlet extends HttpServlet {
     private TemplateEngine engine;
     private CourseDao courseDao;

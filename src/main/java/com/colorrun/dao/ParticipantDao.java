@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class ParticipantDao {
         return false;
     }
 
-    public void add(Participant participant) {
+    public Participant add(Participant participant) {
         String sql = "INSERT INTO participants (course_id, user_id) VALUES (?, ?)";
         System.out.println("ParticipantDao.add() - Début");
         System.out.println("ParticipantDao.add() - SQL: " + sql);
@@ -76,15 +77,25 @@ public class ParticipantDao {
         System.out.println("ParticipantDao.add() - UserId: " + participant.getUserId());
 
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             stmt.setInt(1, participant.getCourseId());
             stmt.setInt(2, participant.getUserId());
             int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        participant.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
             System.out.println("ParticipantDao.add() - Lignes affectées: " + rowsAffected);
+            return participant;
         } catch (SQLException e) {
             System.out.println("ParticipantDao.add() - Erreur SQL: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
     }
 } 
