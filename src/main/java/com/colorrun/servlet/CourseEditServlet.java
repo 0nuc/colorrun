@@ -29,6 +29,7 @@ public class CourseEditServlet extends HttpServlet {
         courseDao = new CourseDao();
         // Initialisation Thymeleaf
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+
         resolver.setPrefix("WEB-INF/views/");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");

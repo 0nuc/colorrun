@@ -27,9 +27,13 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("/WEB-INF/views/");
         resolver.setSuffix(".html");
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         resolver.setTemplateMode("HTML");
         resolver.setCharacterEncoding("UTF-8");
         TemplateEngine engine = new TemplateEngine();

@@ -21,6 +21,9 @@ public class User {
     private int upcomingRaces;
     private int totalDistance;
 
+    private boolean verified;
+    private String verificationToken;
+
     public User() {}
 
     public int getId() { return id; }
@@ -76,5 +79,18 @@ public class User {
 
     public void setTotalDistance(int totalDistance) {
         this.totalDistance = totalDistance;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
     }
 }

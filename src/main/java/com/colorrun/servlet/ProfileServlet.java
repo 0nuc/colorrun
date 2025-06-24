@@ -41,8 +41,11 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        response.setContentType("text/html; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
         System.out.println("[ProfileServlet] doGet called");
         HttpSession session = request.getSession(false);
+        
         User user = (User) (session != null ? session.getAttribute("user") : null);
 
         if (user == null) {
@@ -104,7 +107,6 @@ public class ProfileServlet extends HttpServlet {
             if (successMessage != null) {
                 ctx.setVariable("successMessage", successMessage);
             }
-            response.setCharacterEncoding("UTF-8");
             engine.process("profil", ctx, response.getWriter());
             System.out.println("[ProfileServlet] Profile page rendered successfully");
         } catch (Exception e) {

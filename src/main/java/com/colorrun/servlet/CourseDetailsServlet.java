@@ -29,6 +29,7 @@ public class CourseDetailsServlet extends HttpServlet {
     public void init() {
         // Configuration de Thymeleaf
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        
         resolver.setPrefix("WEB-INF/views/");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");
@@ -44,38 +45,50 @@ public class CourseDetailsServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setContentType("text/html; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
         // Récupération de l'ID de la course depuis l'URL
         String pathInfo = request.getPathInfo();
+        System.out.println("[DEBUG] pathInfo = " + pathInfo);
         if (pathInfo == null || pathInfo.equals("/")) {
+            System.out.println("[DEBUG] pathInfo null ou /, redirection vers /courses");
             response.sendRedirect(request.getContextPath() + "/courses");
             return;
         }
 
         String[] pathParts = pathInfo.split("/");
+        System.out.println("[DEBUG] pathParts = " + java.util.Arrays.toString(pathParts));
         if (pathParts.length < 2) {
+            System.out.println("[DEBUG] pathParts trop court, redirection vers /courses");
             response.sendRedirect(request.getContextPath() + "/courses");
             return;
         }
 
         try {
             int courseId = Integer.parseInt(pathParts[1]);
+            System.out.println("[DEBUG] courseId = " + courseId);
             Course course = courseDao.findById(courseId);
+            System.out.println("[DEBUG] course = " + course);
             
             if (course == null) {
+                System.out.println("[DEBUG] course null, redirection vers /courses");
                 response.sendRedirect(request.getContextPath() + "/courses");
                 return;
             }
 
             // Récupération des participants
             List<Participant> participants = participantDao.findByCourseId(courseId);
+            System.out.println("[DEBUG] participants.size = " + (participants != null ? participants.size() : "null"));
 
             // Vérification si l'utilisateur est inscrit
             HttpSession session = request.getSession();
             User user = (User) session.getAttribute("user");
+            System.out.println("[DEBUG] user = " + user);
             boolean estInscrit = false;
             if (user != null) {
                 estInscrit = participantDao.isUserRegistered(courseId, user.getId());
             }
+            System.out.println("[DEBUG] estInscrit = " + estInscrit);
 
             // Préparation du contexte pour Thymeleaf
             WebContext context = new WebContext(request, response, getServletContext());
@@ -85,8 +98,10 @@ public class CourseDetailsServlet extends HttpServlet {
             context.setVariable("estInscrit", estInscrit);
 
             // Rendu de la page
+            System.out.println("[DEBUG] rendu de la page course-details");
             engine.process("course-details", context, response.getWriter());
         } catch (NumberFormatException e) {
+            System.out.println("[DEBUG] NumberFormatException, redirection vers /courses");
             response.sendRedirect(request.getContextPath() + "/courses");
         }
     }

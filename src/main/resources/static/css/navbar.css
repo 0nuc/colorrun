@@ -1,27 +1,52 @@
-/* Suppression du style personnalisé pour utiliser le style Bootstrap par défaut */
+/* Navbar fun et colorée pour ColorRun */
 
-.navbar {
-  background-color: #f8f9fa !important;
-  border-bottom: 1px solid #dee2e6;
+.custom-navbar {
+  background: linear-gradient(90deg, #ff8a00 0%, #e52e71 100%) !important;
+  border-bottom: 3px solid #fff176;
+  box-shadow: 0 2px 12px 0 rgba(229, 46, 113, 0.08);
+}
+
+.logo-circle {
+  background: #fff176;
+  color: #e52e71;
+  border-radius: 50%;
+  padding: 0.3em 0.5em;
+  font-size: 1.3em;
+  box-shadow: 0 2px 8px 0 rgba(255, 138, 0, 0.15);
 }
 
 .navbar-brand {
-  color: #0d6efd !important;
+  color: #fff !important;
   font-weight: bold;
+  font-size: 1.5em;
+  letter-spacing: 1px;
 }
 
 .nav-link {
-  color: #212529 !important;
+  color: #fff !important;
+  border-radius: 20px;
+  margin: 0 0.2em;
+  transition: background 0.2s, color 0.2s;
+  padding: 0.4em 1em;
 }
 
-.nav-link:hover {
-  color: #0d6efd !important;
+.nav-link:hover,
+.nav-link.active {
+  background: #fff176;
+  color: #e52e71 !important;
+  font-weight: bold;
 }
 
 .navbar-toggler {
-  border-color: #dee2e6;
+  border-color: #fff176;
 }
 
 .navbar-toggler:focus {
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  box-shadow: 0 0 0 0.25rem rgba(255, 138, 0, 0.25);
+}
+
+@media (max-width: 991px) {
+  .navbar-nav .nav-link {
+    margin-bottom: 0.5em;
+  }
 }

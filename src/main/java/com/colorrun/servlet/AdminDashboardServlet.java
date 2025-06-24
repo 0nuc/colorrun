@@ -15,27 +15,20 @@ import org.thymeleaf.extras.java8time.dialect.Java8TimeDialect;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import com.colorrun.dao.CourseDao;
 import com.colorrun.dao.OrganizerRequestDao;
 import com.colorrun.dao.UserDao;
-import com.colorrun.model.Course;
 import com.colorrun.model.OrganizerRequest;
 import com.colorrun.model.User;
 
-public class AdminServlet extends HttpServlet {
+public class AdminDashboardServlet extends HttpServlet {
+
+    private TemplateEngine engine;
     private OrganizerRequestDao requestDao;
     private UserDao userDao;
-    private CourseDao courseDao;
-    private TemplateEngine engine;
 
     @Override
     public void init() {
-        requestDao = new OrganizerRequestDao();
-        userDao = new UserDao();
-        courseDao = new CourseDao();
-        // Configuration Thymeleaf pour charger depuis le classpath
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-
         resolver.setPrefix("WEB-INF/views/");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");
@@ -43,6 +36,8 @@ public class AdminServlet extends HttpServlet {
         engine = new TemplateEngine();
         engine.setTemplateResolver(resolver);
         engine.addDialect(new Java8TimeDialect());
+        requestDao = new OrganizerRequestDao();
+        userDao = new UserDao();
     }
 
     private boolean isAdmin(HttpServletRequest req) {
@@ -60,16 +55,20 @@ public class AdminServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
+
         List<OrganizerRequest> requests = requestDao.findAll();
         List<User> users = userDao.findAll();
-        List<Course> courses = courseDao.findAll();
-        User user = (User) req.getSession().getAttribute("user");
-        WebContext context = new WebContext(req, resp, getServletContext(), req.getLocale());
+
+        WebContext context = new WebContext(req, resp, getServletContext());
         context.setVariable("requests", requests);
         context.setVariable("users", users);
-        context.setVariable("courses", courses);
-        context.setVariable("session", req.getSession());
-        context.setVariable("user", user);
+
+        HttpSession session = req.getSession();
+        if (session.getAttribute("successMessage") != null) {
+            context.setVariable("successMessage", session.getAttribute("successMessage"));
+            session.removeAttribute("successMessage");
+        }
+
         engine.process("admin", context, resp.getWriter());
     }
 
@@ -79,30 +78,22 @@ public class AdminServlet extends HttpServlet {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+
+        int requestId = Integer.parseInt(req.getParameter("requestId"));
         String action = req.getParameter("action");
-        HttpSession session = req.getSession();
+
         if ("approve".equals(action)) {
-            int requestId = Integer.parseInt(req.getParameter("requestId"));
             int userId = Integer.parseInt(req.getParameter("userId"));
+            // Mettre à jour le statut de la demande
             requestDao.updateStatus(requestId, "APPROVED");
+            // Mettre à jour le rôle de l'utilisateur
             userDao.updateUserRole(userId, "ORGANISATEUR");
+            req.getSession().setAttribute("successMessage", "La demande a été approuvée.");
         } else if ("reject".equals(action)) {
-            int requestId = Integer.parseInt(req.getParameter("requestId"));
             requestDao.updateStatus(requestId, "REJECTED");
-        } else if ("changeRole".equals(action)) {
-            int userId = Integer.parseInt(req.getParameter("userId"));
-            String newRole = req.getParameter("role");
-            userDao.updateUserRole(userId, newRole);
-        } else if ("deleteUser".equals(action)) {
-            int userId = Integer.parseInt(req.getParameter("userId"));
-            User currentUser = (User) session.getAttribute("user");
-            if (currentUser.getId() != userId) {
-                userDao.delete(userId);
-            }
-        } else if ("deleteCourse".equals(action)) {
-            int courseId = Integer.parseInt(req.getParameter("courseId"));
-            courseDao.delete(courseId);
+            req.getSession().setAttribute("successMessage", "La demande a été rejetée.");
         }
-        resp.sendRedirect(req.getContextPath() + "/admin");
+
+        resp.sendRedirect(req.getContextPath() + "/admin/requests");
     }
 } 

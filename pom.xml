@@ -45,6 +45,18 @@
       <version>2.2.224</version>
     </dependency>
 
+    <!-- JavaMail pour l'envoi d'emails (API + implémentation) -->
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>javax.mail-api</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+
     <!-- JDBC Transaction -->
     <dependency>
       <groupId>jakarta.transaction</groupId>

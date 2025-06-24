@@ -12,10 +12,21 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
+import com.colorrun.dao.CourseDao;
+
 public class HomeServlet extends HttpServlet {
+    private CourseDao courseDao;
+
+    @Override
+    public void init() {
+        courseDao = new CourseDao();
+    }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("/WEB-INF/views/");
         resolver.setSuffix(".html");
@@ -28,6 +39,7 @@ public class HomeServlet extends HttpServlet {
         if (session != null) {
             ctx.setVariable("user", session.getAttribute("user"));
         }
+        ctx.setVariable("lastCourses", courseDao.findRandomCourses(3));
         engine.process("home", ctx, resp.getWriter());
     }
 }

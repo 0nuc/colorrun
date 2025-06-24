@@ -29,12 +29,16 @@ public class CoursesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("CoursesServlet.doGet() - Début");
         
         try {
             // Configuration Thymeleaf
             System.out.println("Configuration Thymeleaf...");
             ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+            resp.setContentType("text/html; charset=UTF-8");
+            resp.setCharacterEncoding("UTF-8");
             resolver.setPrefix("/WEB-INF/views/");
             resolver.setSuffix(".html");
             resolver.setTemplateMode("HTML");
@@ -52,6 +56,20 @@ public class CoursesServlet extends HttpServlet {
             System.out.println("Récupération des courses...");
             List<Course> courses = courseDao.findWithFilters(date, ville, distance, tri);
             System.out.println("Nombre de courses trouvées : " + courses.size());
+            
+            // Debug détaillé des courses
+            for (int i = 0; i < courses.size(); i++) {
+                Course course = courses.get(i);
+                System.out.println("Course " + (i+1) + ":");
+                System.out.println("  - ID: " + course.getId());
+                System.out.println("  - Nom: " + course.getNom());
+                System.out.println("  - Description: " + course.getDescription());
+                System.out.println("  - Date: " + course.getDateHeure());
+                System.out.println("  - Lieu: " + course.getLieu());
+                System.out.println("  - Distance: " + course.getDistance());
+                System.out.println("  - Prix: " + course.getPrix());
+                System.out.println("  - MaxParticipants: " + course.getMaxParticipants());
+            }
 
             // Passage des données à la vue
             System.out.println("Préparation du contexte...");

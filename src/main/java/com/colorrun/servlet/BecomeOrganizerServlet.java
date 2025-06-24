@@ -25,6 +25,7 @@ public class BecomeOrganizerServlet extends HttpServlet {
     @Override
     public void init() {
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+
         resolver.setPrefix("WEB-INF/views/");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");

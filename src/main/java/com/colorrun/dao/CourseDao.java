@@ -380,4 +380,60 @@ public class CourseDao {
             e.printStackTrace();
         }
     }
+
+    public List<Course> findLastCourses(int limit) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT * FROM course ORDER BY date_heure DESC LIMIT ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Course course = new Course();
+                course.setId(rs.getInt("id"));
+                course.setNom(rs.getString("nom"));
+                course.setDescription(rs.getString("description"));
+                course.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                course.setLieu(rs.getString("lieu"));
+                course.setDistance(rs.getInt("distance"));
+                course.setMaxParticipants(rs.getInt("max_participants"));
+                course.setPrix(rs.getDouble("prix"));
+                course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
+                course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return courses;
+    }
+
+    public List<Course> findRandomCourses(int limit) {
+        List<Course> courses = new ArrayList<>();
+        String sql = "SELECT * FROM course ORDER BY RAND() LIMIT ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Course course = new Course();
+                course.setId(rs.getInt("id"));
+                course.setNom(rs.getString("nom"));
+                course.setDescription(rs.getString("description"));
+                course.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                course.setLieu(rs.getString("lieu"));
+                course.setDistance(rs.getInt("distance"));
+                course.setMaxParticipants(rs.getInt("max_participants"));
+                course.setPrix(rs.getDouble("prix"));
+                course.setAvecObstacles(rs.getBoolean("avec_obstacles"));
+                course.setCauseSoutenue(rs.getString("cause_soutenue"));
+                course.setOrganisateurId(rs.getInt("organisateur_id"));
+                courses.add(course);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return courses;
+    }
 } 
