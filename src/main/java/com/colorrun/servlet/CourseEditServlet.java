@@ -38,6 +38,8 @@ public class CourseEditServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         HttpSession session = req.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
         if (user == null || !"ORGANISATEUR".equals(user.getRole())) {
@@ -66,6 +68,8 @@ public class CourseEditServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("=== COURSE EDIT SERVLET - doPost ===");
         
         HttpSession session = req.getSession(false);

@@ -29,27 +29,29 @@ public class CourseInscriptionServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("CourseInscriptionServlet.doGet() - Début");
         
         // Vérifier si l'utilisateur est connecté
-        HttpSession session = request.getSession(false);
+        HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             System.out.println("CourseInscriptionServlet.doGet() - Utilisateur non connecté");
-            response.sendRedirect(request.getContextPath() + "/login");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
         User user = (User) session.getAttribute("user");
 
         // Récupérer l'ID de la course depuis l'URL
-        String pathInfo = request.getPathInfo();
+        String pathInfo = req.getPathInfo();
         System.out.println("CourseInscriptionServlet.doGet() - PathInfo: " + pathInfo);
         
         String[] pathParts = pathInfo.split("/");
         if (pathParts.length < 2) {
             System.out.println("CourseInscriptionServlet.doGet() - URL invalide");
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
             return;
         }
 
@@ -60,7 +62,7 @@ public class CourseInscriptionServlet extends HttpServlet {
             // Vérifier si l'utilisateur est déjà inscrit
             if (participantDao.isUserRegistered(courseId, user.getId())) {
                 System.out.println("CourseInscriptionServlet.doGet() - Utilisateur déjà inscrit");
-                response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=alreadyRegistered");
+                resp.sendRedirect(req.getContextPath() + "/courses/" + courseId + "?error=alreadyRegistered");
                 return;
             }
 
@@ -68,7 +70,7 @@ public class CourseInscriptionServlet extends HttpServlet {
             Course course = courseDao.findById(courseId);
             if (course == null) {
                 System.out.println("CourseInscriptionServlet.doGet() - Course non trouvée");
-                response.sendRedirect(request.getContextPath() + "/courses");
+                resp.sendRedirect(req.getContextPath() + "/courses");
                 return;
             }
             
@@ -81,7 +83,7 @@ public class CourseInscriptionServlet extends HttpServlet {
             Participant newParticipant = participantDao.add(participant);
             if (newParticipant == null || newParticipant.getId() == 0) {
                  System.out.println("CourseInscriptionServlet.doGet() - Erreur lors de l'ajout du participant");
-                 response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=registrationFailed");
+                 resp.sendRedirect(req.getContextPath() + "/courses/" + courseId + "?error=registrationFailed");
                  return;
             }
             System.out.println("CourseInscriptionServlet.doGet() - Participant ajouté avec succès avec l'ID: " + newParticipant.getId());
@@ -92,29 +94,37 @@ public class CourseInscriptionServlet extends HttpServlet {
                 byte[] pdfBytes = bibService.generateBibPdf(user, course, newParticipant);
                 
                 // Configurer la réponse pour le téléchargement
-                response.setContentType("application/pdf");
-                response.setHeader("Content-Disposition", "attachment; filename=\"dossard_" + course.getNom().replace(" ", "_") + "_" + user.getLastName() + ".pdf\"");
-                response.setContentLength(pdfBytes.length);
+                resp.setContentType("application/pdf");
+                resp.setHeader("Content-Disposition", "attachment; filename=\"dossard_" + course.getNom().replace(" ", "_") + "_" + user.getLastName() + ".pdf\"");
+                resp.setContentLength(pdfBytes.length);
                 
                 // Écrire le PDF dans la réponse
-                response.getOutputStream().write(pdfBytes);
-                response.getOutputStream().flush();
+                resp.getOutputStream().write(pdfBytes);
+                resp.getOutputStream().flush();
                 return; // Arrêter ici pour éviter la redirection
             } catch (Exception e) {
                 System.out.println("CourseInscriptionServlet.doGet() - Erreur lors de la génération du PDF: " + e.getMessage());
                 e.printStackTrace();
                 // En cas d'erreur de génération du PDF, rediriger avec un message
-                response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=pdfGenerationFailed");
+                resp.sendRedirect(req.getContextPath() + "/courses/" + courseId + "?error=pdfGenerationFailed");
                 return;
             }
 
         } catch (NumberFormatException e) {
             System.out.println("CourseInscriptionServlet.doGet() - Erreur de format de l'ID: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         } catch (Exception e) {
             System.out.println("CourseInscriptionServlet.doGet() - Erreur inattendue: " + e.getMessage());
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        // ... existing code ...
     }
 } 

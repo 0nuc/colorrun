@@ -40,6 +40,8 @@ public class BecomeOrganizerServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         // Vérifier si l'utilisateur est connecté
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
@@ -58,6 +60,8 @@ public class BecomeOrganizerServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
             resp.sendRedirect(req.getContextPath() + "/login");

@@ -24,13 +24,15 @@
         --color-dark: #2c3e50;
         --color-light: #ffffff;
       }
+
       body {
         font-family: "Poppins", sans-serif;
         background-color: var(--color-bg);
         color: var(--color-dark);
       }
+
       .login-container {
-        min-height: calc(100vh - 200px);
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -42,6 +44,7 @@
         position: relative;
         padding: 2rem 1rem;
       }
+
       .login-card {
         background: var(--color-light);
         border-radius: 20px;
@@ -49,8 +52,9 @@
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         position: relative;
         overflow: hidden;
-        z-index: 2;
+        z-index: 10;
       }
+
       .login-card::before {
         content: "";
         position: absolute;
@@ -64,20 +68,24 @@
           var(--color-orange)
         );
       }
+
       .login-card h2 {
         font-weight: 700;
         color: var(--color-dark);
       }
+
       .form-control {
         border-radius: 25px;
         padding: 12px 20px;
         border: 2px solid #eee;
         transition: all 0.3s ease;
       }
+
       .form-control:focus {
         border-color: var(--color-pink);
         box-shadow: 0 0 0 0.2rem rgba(255, 0, 106, 0.2);
       }
+
       .input-group-text {
         border-radius: 25px 0 0 25px;
         background: linear-gradient(
@@ -88,9 +96,11 @@
         color: white;
         border: none;
       }
+
       .input-group .form-control {
         border-radius: 0 25px 25px 0;
       }
+
       .btn-primary {
         background: linear-gradient(
           90deg,
@@ -104,6 +114,7 @@
         padding: 12px 30px;
         transition: 0.3s ease;
       }
+
       .btn-primary:hover {
         background: linear-gradient(
           90deg,
@@ -112,30 +123,75 @@
         );
         transform: translateY(-2px);
       }
+
       a {
         color: var(--color-pink);
         transition: 0.2s ease;
         text-decoration: none;
       }
+
       a:hover {
         color: var(--color-orange);
         text-decoration: underline;
       }
+
       .alert {
         border-radius: 25px;
         padding: 0.8rem 1.5rem;
         font-weight: 500;
       }
+
+      .login-links {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.95rem;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+      }
+
+      .login-links a {
+        display: inline-block;
+        margin: 8px 15px;
+        padding: 8px 16px;
+        color: var(--color-pink);
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        background: white;
+        border: 2px solid var(--color-pink);
+      }
+
+      .login-links a:hover {
+        background: var(--color-pink);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 0, 106, 0.3);
+      }
+
+      .login-links a.text-muted {
+        color: #6c757d;
+        border-color: #6c757d;
+      }
+
+      .login-links a.text-muted:hover {
+        background: #6c757d;
+        color: white;
+      }
     </style>
   </head>
   <body>
     <div th:replace="fragments/navbar.html :: body"></div>
+
     <div class="login-container">
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-md-6 col-lg-5">
             <div class="login-card p-4">
               <h2 class="text-center mb-4">Connexion</h2>
+
               <form method="post">
                 <div class="mb-3">
                   <label for="email" class="form-label">Email</label>
@@ -171,11 +227,26 @@
                   Se connecter
                 </button>
               </form>
+
+              <!-- Liens de navigation -->
+              <div class="login-links">
+                <div
+                  style="margin-bottom: 10px; font-weight: bold; color: #333"
+                >
+                  Options supplémentaires :
+                </div>
+                <a href="register">Créer un compte</a>
+                <a href="forgot-password" class="text-muted"
+                  >Mot de passe oublié ?</a
+                >
+              </div>
+
               <div
                 th:if="${error}"
                 class="alert alert-danger mt-3"
                 th:text="${error}"
               ></div>
+
               <div
                 th:if="${param.success == 'email_verified'}"
                 class="alert alert-success mt-3"
@@ -183,24 +254,19 @@
                 Votre compte a été vérifié avec succès ! Vous pouvez maintenant
                 vous connecter.
               </div>
+
               <div
                 th:if="${param.error == 'invalid_token'}"
                 class="alert alert-danger mt-3"
               >
                 Lien de vérification invalide ou expiré.
               </div>
+
               <div
                 th:if="${param.error == 'already_verified'}"
                 class="alert alert-info mt-3"
               >
                 Votre compte est déjà vérifié.
-              </div>
-              <div class="text-center mt-3">
-                <a href="register">Créer un compte</a>
-                <br />
-                <a href="forgot-password" class="text-muted"
-                  >Mot de passe oublié ?</a
-                >
               </div>
             </div>
           </div>

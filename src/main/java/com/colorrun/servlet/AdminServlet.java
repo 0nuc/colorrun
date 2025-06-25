@@ -35,7 +35,6 @@ public class AdminServlet extends HttpServlet {
         courseDao = new CourseDao();
         // Configuration Thymeleaf pour charger depuis le classpath
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-
         resolver.setPrefix("WEB-INF/views/");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");
@@ -56,6 +55,8 @@ public class AdminServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         if (!isAdmin(req)) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -75,6 +76,8 @@ public class AdminServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         if (!isAdmin(req)) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;

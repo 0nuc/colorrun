@@ -22,31 +22,41 @@ public class CourseMessageServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        // ... existing code ...
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         
         // Vérifier si l'utilisateur est connecté
-        HttpSession session = request.getSession(false);
+        HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("user") == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
         
         User user = (User) session.getAttribute("user");
         
         // Récupérer l'ID de la course depuis le paramètre
-        String courseIdParam = request.getParameter("courseId");
+        String courseIdParam = req.getParameter("courseId");
         if (courseIdParam == null || courseIdParam.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
             return;
         }
 
         try {
             int courseId = Integer.parseInt(courseIdParam);
-            String contenu = request.getParameter("contenu");
+            String contenu = req.getParameter("contenu");
             
             if (contenu == null || contenu.trim().isEmpty()) {
-                response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=emptyMessage");
+                resp.sendRedirect(req.getContextPath() + "/courses/" + courseId + "?error=emptyMessage");
                 return;
             }
             
@@ -68,13 +78,13 @@ public class CourseMessageServlet extends HttpServlet {
             System.out.println("CourseMessageServlet.doPost() - Message sauvegardé avec succès");
             
             // Rediriger vers la page de détails de la course
-            response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?success=messageSent");
+            resp.sendRedirect(req.getContextPath() + "/courses/" + courseId + "?success=messageSent");
             
         } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         }
     }
 } 

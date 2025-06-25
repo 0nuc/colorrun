@@ -3,5 +3,5 @@
 
 DELETE FROM course WHERE id > 3;
 
--- Reset l'auto-increment
-ALTER TABLE course ALTER COLUMN id RESTART WITH 4; 
+-- Reset l'auto-increment dynamiquement
+ALTER TABLE course ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM course); 

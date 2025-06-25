@@ -51,6 +51,8 @@ public class AdminDashboardServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         if (!isAdmin(req)) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -74,6 +76,8 @@ public class AdminDashboardServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         if (!isAdmin(req)) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;

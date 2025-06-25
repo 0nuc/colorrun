@@ -95,4 +95,12 @@ public class CoursesServlet extends HttpServlet {
             throw e;
         }
     }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        // ... existing code ...
+    }
 } 

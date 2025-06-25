@@ -48,15 +48,16 @@ public class CourseDetailsServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         // Récupération de l'ID de la course depuis l'URL
-        String pathInfo = request.getPathInfo();
+        String pathInfo = req.getPathInfo();
         System.out.println("[DEBUG] pathInfo = " + pathInfo);
         if (pathInfo == null || pathInfo.equals("/")) {
             System.out.println("[DEBUG] pathInfo null ou /, redirection vers /courses");
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
             return;
         }
 
@@ -64,7 +65,7 @@ public class CourseDetailsServlet extends HttpServlet {
         System.out.println("[DEBUG] pathParts = " + java.util.Arrays.toString(pathParts));
         if (pathParts.length < 2) {
             System.out.println("[DEBUG] pathParts trop court, redirection vers /courses");
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
             return;
         }
 
@@ -76,7 +77,7 @@ public class CourseDetailsServlet extends HttpServlet {
             
             if (course == null) {
                 System.out.println("[DEBUG] course null, redirection vers /courses");
-                response.sendRedirect(request.getContextPath() + "/courses");
+                resp.sendRedirect(req.getContextPath() + "/courses");
                 return;
             }
 
@@ -89,7 +90,7 @@ public class CourseDetailsServlet extends HttpServlet {
             System.out.println("[DEBUG] messages.size = " + (messages != null ? messages.size() : "null"));
 
             // Vérification si l'utilisateur est inscrit
-            HttpSession session = request.getSession();
+            HttpSession session = req.getSession();
             User user = (User) session.getAttribute("user");
             System.out.println("[DEBUG] user = " + user);
             boolean estInscrit = false;
@@ -99,7 +100,7 @@ public class CourseDetailsServlet extends HttpServlet {
             System.out.println("[DEBUG] estInscrit = " + estInscrit);
 
             // Préparation du contexte pour Thymeleaf
-            WebContext context = new WebContext(request, response, getServletContext());
+            WebContext context = new WebContext(req, resp, getServletContext());
             context.setVariable("course", course);
             context.setVariable("participants", participants);
             context.setVariable("messages", messages);
@@ -108,10 +109,18 @@ public class CourseDetailsServlet extends HttpServlet {
 
             // Rendu de la page
             System.out.println("[DEBUG] rendu de la page course-details");
-            engine.process("course-details", context, response.getWriter());
+            engine.process("course-details", context, resp.getWriter());
         } catch (NumberFormatException e) {
             System.out.println("[DEBUG] NumberFormatException, redirection vers /courses");
-            response.sendRedirect(request.getContextPath() + "/courses");
+            resp.sendRedirect(req.getContextPath() + "/courses");
         }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        // ... existing code ...
     }
 } 

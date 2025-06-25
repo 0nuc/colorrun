@@ -51,15 +51,15 @@ public class UserDao {
             }
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, user.getFirstName());
-                ps.setString(2, user.getLastName());
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
                 if (hasVerificationToken) {
-                    ps.setString(3, user.getVerificationToken());
-                    ps.setInt(4, user.getId());
+            ps.setString(3, user.getVerificationToken());
+            ps.setInt(4, user.getId());
                 } else {
                     ps.setInt(3, user.getId());
                 }
-                ps.executeUpdate();
+            ps.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -73,19 +73,19 @@ public class UserDao {
             ps.setString(1, email);
             System.out.println("Exécution de la requête SQL: " + ps.toString());
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    User user = new User();
-                    user.setId(rs.getInt("id"));
-                    user.setFirstName(rs.getString("first_name"));
-                    user.setLastName(rs.getString("last_name"));
-                    user.setEmail(rs.getString("email"));
-                    user.setPassword(rs.getString("password"));
-                    user.setRole(rs.getString("role"));
-                    try { user.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
-                    try { user.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
+            if (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setFirstName(rs.getString("first_name"));
+                user.setLastName(rs.getString("last_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(rs.getString("role"));
+                try { user.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
+                try { user.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
                     try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
                     System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec l'ID: " + user.getId() + " et le rôle: " + user.getRole());
-                    return user;
+                return user;
                 } else {
                     System.out.println("Aucun utilisateur trouvé pour l'email: " + email);
                     return null;
@@ -113,11 +113,11 @@ public class UserDao {
             }
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, user.getFirstName());
-                ps.setString(2, user.getLastName());
-                ps.setString(3, user.getEmail());
-                ps.setString(4, user.getPassword());
-                ps.setString(5, user.getRole());
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getEmail());
+            ps.setString(4, user.getPassword());
+            ps.setString(5, user.getRole());
                 
                 if (verifiedColumnExists) {
                     ps.setBoolean(6, user.isVerified());
@@ -126,7 +126,7 @@ public class UserDao {
                     ps.setString(6, user.getVerificationToken());
                 }
                 
-                ps.executeUpdate();
+            ps.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -278,17 +278,54 @@ public class UserDao {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.executeUpdate();
-        } catch (SQLException e) {
+            } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public void delete(int userId) {
-        String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            ps.executeUpdate();
+        try (Connection conn = getConnection()) {
+            // Désactiver l'auto-commit pour gérer la transaction
+            conn.setAutoCommit(false);
+            try {
+                // Supprimer d'abord les messages de l'utilisateur
+                String deleteMessagesSql = "DELETE FROM messages WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteMessagesSql)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+                
+                // Supprimer les participations de l'utilisateur
+                String deleteParticipantsSql = "DELETE FROM participants WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteParticipantsSql)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+                
+                // Supprimer les demandes d'organisateur de l'utilisateur
+                String deleteRequestsSql = "DELETE FROM organizer_requests WHERE user_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteRequestsSql)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+                
+                // Enfin, supprimer l'utilisateur
+                String deleteUserSql = "DELETE FROM users WHERE id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteUserSql)) {
+                    ps.setInt(1, userId);
+                    ps.executeUpdate();
+                }
+                
+                // Valider la transaction
+                conn.commit();
+            } catch (SQLException e) {
+                // En cas d'erreur, annuler la transaction
+                conn.rollback();
+                throw e;
+            } finally {
+                // Réactiver l'auto-commit
+                conn.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

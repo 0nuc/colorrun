@@ -42,4 +42,11 @@ public class HomeServlet extends HttpServlet {
         ctx.setVariable("lastCourses", courseDao.findRandomCourses(3));
         engine.process("home", ctx, resp.getWriter());
     }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+    }
 }

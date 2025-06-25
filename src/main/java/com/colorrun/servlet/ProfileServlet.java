@@ -39,18 +39,18 @@ public class ProfileServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("[ProfileServlet] doGet called");
-        HttpSession session = request.getSession(false);
+        HttpSession session = req.getSession(false);
         
         User user = (User) (session != null ? session.getAttribute("user") : null);
 
         if (user == null) {
             System.out.println("[ProfileServlet] No user in session, redirecting to login");
-            response.sendRedirect(request.getContextPath() + "/login");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
@@ -66,7 +66,7 @@ public class ProfileServlet extends HttpServlet {
         System.out.println("  newsletter=" + user.isNewsletter());
         System.out.println("  profilePicture=" + user.getProfilePicture());
 
-        String successMessage = (String) request.getAttribute("successMessage");
+        String successMessage = (String) req.getAttribute("successMessage");
         System.out.println("[ProfileServlet] Rendering profile for user: " + user.getEmail());
 
         List<Course> userRaces = courseDao.findCoursesByUserId(user.getId());
@@ -100,14 +100,14 @@ public class ProfileServlet extends HttpServlet {
             TemplateEngine engine = new TemplateEngine();
             engine.setTemplateResolver(resolver);
 
-            WebContext ctx = new WebContext(request, response, getServletContext(), request.getLocale());
+            WebContext ctx = new WebContext(req, resp, getServletContext(), req.getLocale());
             ctx.setVariable("user", user);
             ctx.setVariable("userRaces", userRaces);
             ctx.setVariable("now", now);
             if (successMessage != null) {
                 ctx.setVariable("successMessage", successMessage);
             }
-            engine.process("profil", ctx, response.getWriter());
+            engine.process("profil", ctx, resp.getWriter());
             System.out.println("[ProfileServlet] Profile page rendered successfully");
         } catch (Exception e) {
             System.out.println("[ProfileServlet] Exception during Thymeleaf rendering: " + e.getMessage());
@@ -117,15 +117,17 @@ public class ProfileServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         System.out.println("[ProfileServlet] doPost called");
-        HttpSession session = request.getSession(false);
+        HttpSession session = req.getSession(false);
         User user = (User) session.getAttribute("user");
 
         if (user == null) {
             System.out.println("[ProfileServlet] No user in session, redirecting to login");
-            response.sendRedirect(request.getContextPath() + "/login");
+            resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
 
@@ -141,8 +143,8 @@ public class ProfileServlet extends HttpServlet {
         System.out.println("  newsletter=" + user.isNewsletter());
         System.out.println("  profilePicture=" + user.getProfilePicture());
 
-        if (request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
-            Part filePart = request.getPart("profilePicture");
+        if (req.getContentType() != null && req.getContentType().toLowerCase().startsWith("multipart/")) {
+            Part filePart = req.getPart("profilePicture");
             if (filePart != null && filePart.getSize() > 0) {
                 String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
                 String uploadPath = getServletContext().getRealPath("") + File.separator + UPLOAD_DIR;
@@ -157,7 +159,7 @@ public class ProfileServlet extends HttpServlet {
         }
 
         UserDao userDao = new UserDao();
-        String newPassword = request.getParameter("newPassword");
+        String newPassword = req.getParameter("newPassword");
         boolean passwordChanged = false;
         if (newPassword != null && !newPassword.isEmpty()) {
             // Changement de mot de passe uniquement
@@ -165,36 +167,36 @@ public class ProfileServlet extends HttpServlet {
                 userDao.updatePassword(user.getId(), newPassword);
                 user.setPassword(newPassword);
                 passwordChanged = true;
-                request.setAttribute("successMessage", "Mot de passe modifié !");
+                req.setAttribute("successMessage", "Mot de passe modifié !");
             } catch (Exception e) {
-                request.setAttribute("errorMessage", "Erreur lors de la modification du mot de passe.");
+                req.setAttribute("errorMessage", "Erreur lors de la modification du mot de passe.");
             }
         } else {
             // Mise à jour des autres infos
             User updatedUser = new User();
             updatedUser.setId(user.getId());
             updatedUser.setEmail(user.getEmail());
-            updatedUser.setFirstName(request.getParameter("firstName"));
-            updatedUser.setLastName(request.getParameter("lastName"));
-            updatedUser.setAddress(request.getParameter("address"));
-            updatedUser.setPostalCode(request.getParameter("postalCode"));
-            updatedUser.setCity(request.getParameter("city"));
-            updatedUser.setNewsletter(request.getParameter("newsletter") != null);
-            updatedUser.setPhone(request.getParameter("phone"));
+            updatedUser.setFirstName(req.getParameter("firstName"));
+            updatedUser.setLastName(req.getParameter("lastName"));
+            updatedUser.setAddress(req.getParameter("address"));
+            updatedUser.setPostalCode(req.getParameter("postalCode"));
+            updatedUser.setCity(req.getParameter("city"));
+            updatedUser.setNewsletter(req.getParameter("newsletter") != null);
+            updatedUser.setPhone(req.getParameter("phone"));
             updatedUser.setProfilePicture(user.getProfilePicture());
             updatedUser.setRole(user.getRole());
             updatedUser.setPassword(user.getPassword());
             try {
                 userDao.update(updatedUser);
                 session.setAttribute("user", updatedUser);
-                request.setAttribute("successMessage", "Profil mis à jour avec succès !");
+                req.setAttribute("successMessage", "Profil mis à jour avec succès !");
             } catch (Exception e) {
                 // Si erreur, on recharge l'utilisateur depuis la base pour garder des valeurs cohérentes
                 User freshUser = userDao.findByEmail(user.getEmail());
                 session.setAttribute("user", freshUser);
-                request.setAttribute("errorMessage", "Erreur lors de la mise à jour du profil (colonne manquante ?).");
+                req.setAttribute("errorMessage", "Erreur lors de la mise à jour du profil (colonne manquante ?).");
             }
         }
-        doGet(request, response);
+        doGet(req, resp);
     }
 }

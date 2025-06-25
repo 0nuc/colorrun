@@ -232,11 +232,41 @@ public class CourseDao {
     }
 
     public void delete(int id) {
-        String sql = "DELETE FROM course WHERE id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+        try (Connection conn = getConnection()) {
+            // Désactiver l'auto-commit pour gérer la transaction
+            conn.setAutoCommit(false);
+            try {
+                // Supprimer d'abord les messages de la course
+                String deleteMessagesSql = "DELETE FROM messages WHERE course_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteMessagesSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+                
+                // Supprimer les participants de la course
+                String deleteParticipantsSql = "DELETE FROM participants WHERE course_id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteParticipantsSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+                
+                // Enfin, supprimer la course
+                String deleteCourseSql = "DELETE FROM course WHERE id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(deleteCourseSql)) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+                
+                // Valider la transaction
+                conn.commit();
+            } catch (SQLException e) {
+                // En cas d'erreur, annuler la transaction
+                conn.rollback();
+                throw e;
+            } finally {
+                // Réactiver l'auto-commit
+                conn.setAutoCommit(true);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

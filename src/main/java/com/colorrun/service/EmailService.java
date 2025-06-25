@@ -16,6 +16,10 @@ public class EmailService {
     private static final String FROM_EMAIL = "colorrun.app@gmail.com"; // Changez par votre email
     private static final String PASSWORD = "votre_mot_de_passe_app"; // Changez par votre mot de passe d'application
     
+    // Configuration pour MailHog (SMTP local)
+    private static final String MAILHOG_HOST = "localhost";
+    private static final int MAILHOG_PORT = 1025;
+    
     public void sendEmail(String toEmail, String subject, String message) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -38,12 +42,41 @@ public class EmailService {
         Transport.send(msg);
     }
     
-    // Version simplifiée pour les tests (sans envoi réel)
+    // Version pour MailHog (envoi vers le serveur SMTP local)
     public void sendEmailTest(String toEmail, String subject, String message) {
-        System.out.println("=== EMAIL SIMULÉ ===");
-        System.out.println("À: " + toEmail);
-        System.out.println("Sujet: " + subject);
-        System.out.println("Message: " + message);
-        System.out.println("===================");
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.host", MAILHOG_HOST);
+            props.put("mail.smtp.port", MAILHOG_PORT);
+            props.put("mail.smtp.auth", "false");
+            props.put("mail.smtp.starttls.enable", "false");
+
+            Session session = Session.getInstance(props, null);
+
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress("noreply@colorrun.com"));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            msg.setSubject(subject);
+            msg.setText(message);
+
+            Transport.send(msg);
+            
+            System.out.println("=== EMAIL ENVOYÉ VERS MAILHOG ===");
+            System.out.println("À: " + toEmail);
+            System.out.println("Sujet: " + subject);
+            System.out.println("Message: " + message);
+            System.out.println("Consultez http://localhost:8025 pour voir l'email");
+            System.out.println("=================================");
+            
+        } catch (MessagingException e) {
+            System.err.println("Erreur lors de l'envoi vers MailHog: " + e.getMessage());
+            System.err.println("Assurez-vous que MailHog est démarré sur localhost:1025");
+            // Fallback vers l'affichage console si MailHog n'est pas disponible
+            System.out.println("=== EMAIL SIMULÉ (MailHog non disponible) ===");
+            System.out.println("À: " + toEmail);
+            System.out.println("Sujet: " + subject);
+            System.out.println("Message: " + message);
+            System.out.println("============================================");
+        }
     }
 }

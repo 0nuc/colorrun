@@ -58,4 +58,12 @@ public class VerifyEmailServlet extends HttpServlet {
         System.out.println("Compte vérifié avec succès");
         resp.sendRedirect("login?success=email_verified");
     }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.setContentType("text/html; charset=UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+        // ... existing code ...
+    }
 } 
