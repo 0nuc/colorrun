@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.colorrun.model.Course;
+import com.colorrun.util.DatabaseInitializer;
 
 public class CourseDao {
-    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
+    private static final String DB_URL = "jdbc:h2:file:./colorrun2;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
     private static final String USER = "sa";
     private static final String PASS = "";
 
@@ -25,158 +26,12 @@ public class CourseDao {
     }
 
     public CourseDao() {
-        try {
-            // Vérifie si les tables existent
-            try (Connection conn = getConnection();
-                 ResultSet rs = conn.getMetaData().getTables(null, null, "USERS", null)) {
-                if (!rs.next()) {
-                    // Les tables n'existent pas, on les crée
-                    createTables(conn);
-                    insertTestData(conn);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // Initialiser la base de données une seule fois
+        DatabaseInitializer.getInstance().initializeDatabase();
     }
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, USER, PASS);
-    }
-
-    private void createTables(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement()) {
-            // Table users
-            stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
-                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "first_name VARCHAR(50) NOT NULL, " +
-                    "last_name VARCHAR(50) NOT NULL, " +
-                    "email VARCHAR(100) NOT NULL UNIQUE, " +
-                    "password VARCHAR(100) NOT NULL, " +
-                    "role VARCHAR(20) NOT NULL, " +
-                    "profile_picture VARCHAR(255), " +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                    ")");
-
-            // Table course
-            stmt.execute("CREATE TABLE IF NOT EXISTS course (" +
-                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "nom VARCHAR(100) NOT NULL, " +
-                    "description TEXT, " +
-                    "date_heure TIMESTAMP NOT NULL, " +
-                    "lieu VARCHAR(255) NOT NULL, " +
-                    "distance INT NOT NULL, " +
-                    "max_participants INT NOT NULL, " +
-                    "prix DECIMAL(10,2) NOT NULL, " +
-                    "avec_obstacles BOOLEAN DEFAULT FALSE, " +
-                    "cause_soutenue VARCHAR(200), " +
-                    "organisateur_id INT, " +
-                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "FOREIGN KEY (organisateur_id) REFERENCES users(id)" +
-                    ")");
-
-            // Ajout colonne organisateur_id si elle n'existe pas déjà
-            try {
-                stmt.execute("ALTER TABLE course ADD COLUMN organisateur_id INT");
-            } catch (SQLException e) {
-                // Ignore si déjà existante
-            }
-
-            // Table participants
-            stmt.execute("CREATE TABLE IF NOT EXISTS participants (" +
-                    "id INT AUTO_INCREMENT PRIMARY KEY, " +
-                    "course_id INT NOT NULL, " +
-                    "user_id INT NOT NULL, " +
-                    "date_inscription TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                    "CONSTRAINT unique_participation UNIQUE(course_id, user_id), " +
-                    "FOREIGN KEY (course_id) REFERENCES course(id), " +
-                    "FOREIGN KEY (user_id) REFERENCES users(id)" +
-                    ")");
-        }
-    }
-
-    private void insertTestData(Connection conn) throws SQLException {
-        // Vérifie si la table users est vide
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
-            if (rs.next() && rs.getInt(1) == 0) {
-                // Insère les utilisateurs de test
-                try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)")) {
-                    
-                    // Admin
-                    pstmt.setString(1, "Admin");
-                    pstmt.setString(2, "Admin");
-                    pstmt.setString(3, "admin@colorrun.com");
-                    pstmt.setString(4, "admin123"); // En production, il faudrait hasher le mot de passe
-                    pstmt.setString(5, "ADMIN");
-                    pstmt.executeUpdate();
-
-                    // Participant
-                    pstmt.setString(1, "Dupont");
-                    pstmt.setString(2, "Jean");
-                    pstmt.setString(3, "jean@example.com");
-                    pstmt.setString(4, "jean123");
-                    pstmt.setString(5, "PARTICIPANT");
-                    pstmt.executeUpdate();
-
-                    // Organisateur
-                    pstmt.setString(1, "Martin");
-                    pstmt.setString(2, "Sophie");
-                    pstmt.setString(3, "sophie@example.com");
-                    pstmt.setString(4, "sophie123");
-                    pstmt.setString(5, "ORGANISATEUR");
-                    pstmt.executeUpdate();
-                }
-            }
-        }
-
-        // Vérifie si la table course est vide
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM course")) {
-            if (rs.next() && rs.getInt(1) == 0) {
-                // Insère les données de test
-                try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO course (nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                    
-                    // Course 1
-                    pstmt.setString(1, "ColorRun Paris");
-                    pstmt.setString(2, "Course colorée dans les rues de Paris");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-06-15 10:00:00"));
-                    pstmt.setString(4, "Paris");
-                    pstmt.setInt(5, 5);
-                    pstmt.setInt(6, 1000);
-                    pstmt.setDouble(7, 35.0);
-                    pstmt.setBoolean(8, true);
-                    pstmt.setString(9, "Association A");
-                    pstmt.executeUpdate();
-
-                    // Course 2
-                    pstmt.setString(1, "ColorRun Lyon");
-                    pstmt.setString(2, "Course colorée dans les rues de Lyon");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-07-20 09:00:00"));
-                    pstmt.setString(4, "Lyon");
-                    pstmt.setInt(5, 10);
-                    pstmt.setInt(6, 800);
-                    pstmt.setDouble(7, 40.0);
-                    pstmt.setBoolean(8, false);
-                    pstmt.setString(9, "Association B");
-                    pstmt.executeUpdate();
-
-                    // Course 3
-                    pstmt.setString(1, "ColorRun Marseille");
-                    pstmt.setString(2, "Course colorée sur la plage de Marseille");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-08-05 08:00:00"));
-                    pstmt.setString(4, "Marseille");
-                    pstmt.setInt(5, 7);
-                    pstmt.setInt(6, 1200);
-                    pstmt.setDouble(7, 30.0);
-                    pstmt.setBoolean(8, true);
-                    pstmt.setString(9, "Association C");
-                    pstmt.executeUpdate();
-                }
-            }
-        }
     }
 
     public List<Course> findAll() {
@@ -241,7 +96,6 @@ public class CourseDao {
         } else {
             sql.append(" ORDER BY date_heure");
         }
-
 
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
@@ -329,6 +183,19 @@ public class CourseDao {
     }
 
     public void save(Course course) {
+        System.out.println("CourseDao.save() - Début");
+        System.out.println("CourseDao.save() - Course à sauvegarder:");
+        System.out.println("  - Nom: " + course.getNom());
+        System.out.println("  - Description: " + course.getDescription());
+        System.out.println("  - Date: " + course.getDateHeure());
+        System.out.println("  - Lieu: " + course.getLieu());
+        System.out.println("  - Distance: " + course.getDistance());
+        System.out.println("  - MaxParticipants: " + course.getMaxParticipants());
+        System.out.println("  - Prix: " + course.getPrix());
+        System.out.println("  - AvecObstacles: " + course.isAvecObstacles());
+        System.out.println("  - CauseSoutenue: " + course.getCauseSoutenue());
+        System.out.println("  - OrganisateurId: " + course.getOrganisateurId());
+        
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(
                      "INSERT INTO course(nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue, organisateur_id) " +
@@ -343,10 +210,25 @@ public class CourseDao {
             ps.setBoolean(8, course.isAvecObstacles());
             ps.setString(9, course.getCauseSoutenue());
             ps.setInt(10, course.getOrganisateurId());
-            ps.executeUpdate();
+            
+            System.out.println("CourseDao.save() - Exécution de l'INSERT...");
+            int result = ps.executeUpdate();
+            System.out.println("CourseDao.save() - INSERT exécuté, lignes affectées: " + result);
+            
+            // Récupérer l'ID généré
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    course.setId(id);
+                    System.out.println("CourseDao.save() - ID généré: " + id);
+                }
+            }
+            
         } catch (SQLException e) {
+            System.out.println("CourseDao.save() - ERREUR SQL: " + e.getMessage());
             e.printStackTrace();
         }
+        System.out.println("CourseDao.save() - Fin");
     }
 
     public void delete(int id) {
@@ -436,4 +318,4 @@ public class CourseDao {
         }
         return courses;
     }
-} 
+}

@@ -13,7 +13,7 @@ import com.colorrun.model.OrganizerRequest;
 
 public class OrganizerRequestDao {
 
-    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
+    private static final String DB_URL = "jdbc:h2:file:./colorrun2;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
     private static final String USER = "sa";
     private static final String PASS = "";
 
@@ -23,14 +23,37 @@ public class OrganizerRequestDao {
 
     public void create(OrganizerRequest request) {
         String sql = "INSERT INTO organizer_requests (user_id, motivation, status) VALUES (?, ?, ?)";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, request.getUserId());
-            ps.setString(2, request.getMotivation());
-            ps.setString(3, request.getStatus());
-            ps.executeUpdate();
+        System.out.println("OrganizerRequestDao.create() - Début");
+        System.out.println("OrganizerRequestDao.create() - UserId: " + request.getUserId());
+        System.out.println("OrganizerRequestDao.create() - Motivation: " + request.getMotivation());
+        System.out.println("OrganizerRequestDao.create() - Status: " + request.getStatus());
+        
+        try (Connection conn = getConnection()) {
+            // Vérifier d'abord que l'utilisateur existe
+            String checkUserSql = "SELECT COUNT(*) FROM users WHERE id = ?";
+            try (PreparedStatement checkPs = conn.prepareStatement(checkUserSql)) {
+                checkPs.setInt(1, request.getUserId());
+                try (ResultSet rs = checkPs.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) == 0) {
+                        System.out.println("OrganizerRequestDao.create() - ERREUR: Utilisateur avec l'ID " + request.getUserId() + " n'existe pas dans la table users");
+                        throw new RuntimeException("Utilisateur avec l'ID " + request.getUserId() + " n'existe pas");
+                    }
+                }
+            }
+            System.out.println("OrganizerRequestDao.create() - Utilisateur " + request.getUserId() + " trouvé en base");
+            
+            // Insérer la demande
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, request.getUserId());
+                ps.setString(2, request.getMotivation());
+                ps.setString(3, request.getStatus());
+                ps.executeUpdate();
+                System.out.println("OrganizerRequestDao.create() - Demande créée avec succès");
+            }
         } catch (SQLException e) {
+            System.out.println("OrganizerRequestDao.create() - ERREUR SQL: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Erreur lors de la création de la demande d'organisateur", e);
         }
     }
 

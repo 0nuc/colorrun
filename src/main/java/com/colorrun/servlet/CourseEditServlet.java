@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +18,6 @@ import com.colorrun.dao.CourseDao;
 import com.colorrun.model.Course;
 import com.colorrun.model.User;
 
-@WebServlet({"/courses/create", "/courses/edit/*"})
 public class CourseEditServlet extends HttpServlet {
     private CourseDao courseDao;
     private TemplateEngine engine;
@@ -68,9 +66,12 @@ public class CourseEditServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("=== COURSE EDIT SERVLET - doPost ===");
+        
         HttpSession session = req.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
         if (user == null || !"ORGANISATEUR".equals(user.getRole())) {
+            System.out.println("CourseEditServlet.doPost() - Utilisateur non autorisé");
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -84,10 +85,26 @@ public class CourseEditServlet extends HttpServlet {
         double prix = Double.parseDouble(req.getParameter("prix"));
         boolean avecObstacles = Boolean.parseBoolean(req.getParameter("avecObstacles"));
         String causeSoutenue = req.getParameter("causeSoutenue");
+        
+        System.out.println("CourseEditServlet.doPost() - Données reçues:");
+        System.out.println("  - Nom: " + nom);
+        System.out.println("  - Description: " + description);
+        System.out.println("  - Date: " + dateHeureStr);
+        System.out.println("  - Lieu: " + lieu);
+        System.out.println("  - Distance: " + distance);
+        System.out.println("  - MaxParticipants: " + maxParticipants);
+        System.out.println("  - Prix: " + prix);
+        System.out.println("  - AvecObstacles: " + avecObstacles);
+        System.out.println("  - CauseSoutenue: " + causeSoutenue);
+        System.out.println("  - OrganisateurId: " + user.getId());
+        
         LocalDateTime dateHeure = LocalDateTime.parse(dateHeureStr, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
 
         String path = req.getRequestURI();
+        System.out.println("CourseEditServlet.doPost() - Path: " + path);
+        
         if (path.endsWith("/create")) {
+            System.out.println("CourseEditServlet.doPost() - Création d'une nouvelle course");
             Course course = new Course();
             course.setNom(nom);
             course.setDescription(description);
@@ -99,12 +116,17 @@ public class CourseEditServlet extends HttpServlet {
             course.setAvecObstacles(avecObstacles);
             course.setCauseSoutenue(causeSoutenue);
             course.setOrganisateurId(user.getId());
+            
+            System.out.println("CourseEditServlet.doPost() - Sauvegarde de la course...");
             courseDao.save(course);
+            System.out.println("CourseEditServlet.doPost() - Course sauvegardée avec succès");
         } else if (path.contains("/courses/edit/")) {
+            System.out.println("CourseEditServlet.doPost() - Modification d'une course existante");
             String[] parts = path.split("/edit/");
             int courseId = Integer.parseInt(parts[1]);
             Course course = courseDao.findById(courseId);
             if (course == null || course.getOrganisateurId() != user.getId()) {
+                System.out.println("CourseEditServlet.doPost() - Course non trouvée ou non autorisée");
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
@@ -118,7 +140,10 @@ public class CourseEditServlet extends HttpServlet {
             course.setAvecObstacles(avecObstacles);
             course.setCauseSoutenue(causeSoutenue);
             courseDao.update(course);
+            System.out.println("CourseEditServlet.doPost() - Course modifiée avec succès");
         }
+        
+        System.out.println("CourseEditServlet.doPost() - Redirection vers /courses");
         resp.sendRedirect(req.getContextPath() + "/courses");
     }
 } 

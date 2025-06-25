@@ -10,11 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.colorrun.model.Participant;
+import com.colorrun.util.DatabaseInitializer;
 
 public class ParticipantDao {
-    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
+    private static final String DB_URL = "jdbc:h2:file:./colorrun2;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
     private static final String USER = "sa";
     private static final String PASS = "";
+
+    public ParticipantDao() {
+        // Initialiser la base de données une seule fois
+        DatabaseInitializer.getInstance().initializeDatabase();
+    }
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL, USER, PASS);
+    }
 
     public List<Participant> findByCourseId(int courseId) {
         List<Participant> participants = new ArrayList<>();
@@ -70,32 +80,47 @@ public class ParticipantDao {
     }
 
     public Participant add(Participant participant) {
-        String sql = "INSERT INTO participants (course_id, user_id) VALUES (?, ?)";
         System.out.println("ParticipantDao.add() - Début");
-        System.out.println("ParticipantDao.add() - SQL: " + sql);
+        System.out.println("ParticipantDao.add() - SQL: INSERT INTO participants (course_id, user_id) VALUES (?, ?)");
         System.out.println("ParticipantDao.add() - CourseId: " + participant.getCourseId());
         System.out.println("ParticipantDao.add() - UserId: " + participant.getUserId());
-
-        try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            stmt.setInt(1, participant.getCourseId());
-            stmt.setInt(2, participant.getUserId());
-            int rowsAffected = stmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        participant.setId(generatedKeys.getInt(1));
-                    }
+        
+        // Vérifier que l'utilisateur existe
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM users WHERE id = ?")) {
+            ps.setInt(1, participant.getUserId());
+            try (ResultSet rs = ps.executeQuery()) {
+                rs.next();
+                int userCount = rs.getInt(1);
+                System.out.println("ParticipantDao.add() - Vérification utilisateur ID " + participant.getUserId() + ": " + userCount + " utilisateur(s) trouvé(s)");
+                if (userCount == 0) {
+                    System.out.println("ParticipantDao.add() - ERREUR: L'utilisateur ID " + participant.getUserId() + " n'existe pas !");
+                    return null;
                 }
             }
-            System.out.println("ParticipantDao.add() - Lignes affectées: " + rowsAffected);
-            return participant;
         } catch (SQLException e) {
-            System.out.println("ParticipantDao.add() - Erreur SQL: " + e.getMessage());
+            System.out.println("ParticipantDao.add() - Erreur lors de la vérification de l'utilisateur: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO participants (course_id, user_id) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, participant.getCourseId());
+            ps.setInt(2, participant.getUserId());
+            ps.executeUpdate();
+            
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    participant.setId(rs.getInt(1));
+                    System.out.println("ParticipantDao.add() - Participant ajouté avec succès, ID: " + participant.getId());
+                    return participant;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("ParticipantDao.add() - Erreur SQL: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
     }
 } 

@@ -1,6 +1,7 @@
 package com.colorrun.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Message {
     private int id;
@@ -19,6 +20,15 @@ public class Message {
         this.contenu = contenu;
         this.dateHeure = dateHeure;
         this.auteur = auteur;
+    }
+
+    // Méthode pour formater la date
+    public String getDateFormatted() {
+        if (dateHeure != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            return dateHeure.format(formatter);
+        }
+        return "";
     }
 
     // Getters et Setters

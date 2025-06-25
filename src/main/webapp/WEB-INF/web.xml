@@ -78,6 +78,16 @@
     <url-pattern>/inscription/*</url-pattern>
   </servlet-mapping>
 
+  <!-- CourseMessage Servlet -->
+  <servlet>
+    <servlet-name>CourseMessageServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.CourseMessageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CourseMessageServlet</servlet-name>
+    <url-pattern>/course-message</url-pattern>
+  </servlet-mapping>
+
   <!-- BecomeOrganizer Servlet -->
   <servlet>
     <servlet-name>BecomeOrganizerServlet</servlet-name>
@@ -104,6 +114,48 @@
   <servlet-mapping>
     <servlet-name>AdminServlet</servlet-name>
     <url-pattern>/admin</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <servlet-name>ForgotPasswordServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.ForgotPasswordServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ForgotPasswordServlet</servlet-name>
+    <url-pattern>/forgot-password</url-pattern>
+  </servlet-mapping>
+
+  <!-- ResetPassword Servlet -->
+  <servlet>
+    <servlet-name>ResetPasswordServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.ResetPasswordServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ResetPasswordServlet</servlet-name>
+    <url-pattern>/reset-password</url-pattern>
+  </servlet-mapping>
+
+  <!-- VerifyEmail Servlet -->
+  <servlet>
+    <servlet-name>VerifyEmailServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.VerifyEmailServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>VerifyEmailServlet</servlet-name>
+    <url-pattern>/verify-email</url-pattern>
+  </servlet-mapping>
+
+  <!-- CourseEdit Servlet -->
+  <servlet>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.CourseEditServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <url-pattern>/courses/create</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <url-pattern>/courses/edit/*</url-pattern>
   </servlet-mapping>
 
   <!-- AdminUsers Servlet -->

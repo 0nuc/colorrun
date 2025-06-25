@@ -15,8 +15,10 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import com.colorrun.dao.CourseDao;
+import com.colorrun.dao.MessageDao;
 import com.colorrun.dao.ParticipantDao;
 import com.colorrun.model.Course;
+import com.colorrun.model.Message;
 import com.colorrun.model.Participant;
 import com.colorrun.model.User;
 
@@ -24,6 +26,7 @@ public class CourseDetailsServlet extends HttpServlet {
     private TemplateEngine engine;
     private CourseDao courseDao;
     private ParticipantDao participantDao;
+    private MessageDao messageDao;
 
     @Override
     public void init() {
@@ -41,6 +44,7 @@ public class CourseDetailsServlet extends HttpServlet {
         // Initialisation des DAOs
         courseDao = new CourseDao();
         participantDao = new ParticipantDao();
+        messageDao = new MessageDao();
     }
 
     @Override
@@ -80,6 +84,10 @@ public class CourseDetailsServlet extends HttpServlet {
             List<Participant> participants = participantDao.findByCourseId(courseId);
             System.out.println("[DEBUG] participants.size = " + (participants != null ? participants.size() : "null"));
 
+            // Récupération des messages
+            List<Message> messages = messageDao.findByCourseId(courseId);
+            System.out.println("[DEBUG] messages.size = " + (messages != null ? messages.size() : "null"));
+
             // Vérification si l'utilisateur est inscrit
             HttpSession session = request.getSession();
             User user = (User) session.getAttribute("user");
@@ -94,6 +102,7 @@ public class CourseDetailsServlet extends HttpServlet {
             WebContext context = new WebContext(request, response, getServletContext());
             context.setVariable("course", course);
             context.setVariable("participants", participants);
+            context.setVariable("messages", messages);
             context.setVariable("user", user);
             context.setVariable("estInscrit", estInscrit);
 

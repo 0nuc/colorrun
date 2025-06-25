@@ -231,6 +231,28 @@
       </div>
     </section>
     <div class="container mb-5">
+      <!-- Messages de succès et d'erreur -->
+      <div th:if="${param.success == 'registered'}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> Inscription réussie ! Vous êtes maintenant inscrit à cette course.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${param.error == 'alreadyRegistered'}" class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle"></i> Vous êtes déjà inscrit à cette course.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${param.error == 'registrationFailed'}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> Erreur lors de l'inscription. Veuillez réessayer.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${param.success == 'messageSent'}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle"></i> Votre message a été envoyé avec succès !
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      <div th:if="${param.error == 'emptyMessage'}" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> Le message ne peut pas être vide.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      
       <div class="row">
         <div class="col-lg-8 mb-4">
           <div class="card info-card mb-4">
@@ -355,6 +377,76 @@
               >
                 <i class="bi bi-people"></i>
                 <p>Aucun participant inscrit pour le moment</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fil de discussion -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card info-card">
+            <div class="card-body">
+              <h3 class="section-title">
+                <i class="bi bi-chat-dots"></i> Fil de discussion
+              </h3>
+              
+              <!-- Formulaire pour poster un message -->
+              <div th:if="${user != null}" class="mb-4">
+                <form th:action="@{/course-message}" method="post" class="mb-3">
+                  <input type="hidden" name="courseId" th:value="${course.id}" />
+                  <div class="form-group">
+                    <textarea 
+                      name="contenu" 
+                      class="form-control" 
+                      rows="3" 
+                      placeholder="Posez une question ou partagez un commentaire..."
+                      required
+                      style="border-radius: 15px; border: 2px solid #e9ecef; resize: none;"
+                    ></textarea>
+                  </div>
+                  <div class="text-end mt-2">
+                    <button type="submit" class="btn btn-register">
+                      <i class="bi bi-send"></i> Envoyer
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Messages existants -->
+              <div th:if="${messages != null and !#lists.isEmpty(messages)}">
+                <div th:each="message : ${messages}" class="message-item mb-3 p-3" 
+                     style="background: #f8f9fa; border-radius: 15px; border-left: 4px solid var(--color-pink);">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center">
+                      <div class="participant-avatar me-2" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                        <span th:text="${#strings.substring(message.auteur, 0, 1)}">A</span>
+                      </div>
+                      <div>
+                        <strong th:text="${message.auteur}" class="text-dark">Auteur</strong>
+                        <div class="text-muted small" th:text="${message.dateFormatted}">
+                          Date
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="message-content mt-2" th:text="${message.contenu}">
+                    Contenu du message
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Aucun message -->
+              <div th:if="${messages == null or #lists.isEmpty(messages)}" class="text-center text-muted py-4">
+                <i class="bi bi-chat-dots" style="font-size: 2rem; color: #dee2e6;"></i>
+                <p class="mt-2">Aucun message pour le moment. Soyez le premier à commenter !</p>
+              </div>
+              
+              <!-- Message pour les utilisateurs non connectés -->
+              <div th:unless="${user != null}" class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> 
+                Connectez-vous pour participer à la discussion.
               </div>
             </div>
           </div>

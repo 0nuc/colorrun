@@ -58,12 +58,35 @@ public class LoginServlet extends HttpServlet {
         System.out.println("Utilisateur trouvé: " + (user != null));
         
         if (user != null) {
+            System.out.println("Utilisateur ID: " + user.getId());
             System.out.println("Mot de passe fourni: " + password);
             System.out.println("Mot de passe en base: " + user.getPassword());
             System.out.println("Rôle de l'utilisateur: " + user.getRole());
+            System.out.println("Compte vérifié: " + user.isVerified());
         }
 
         if (user != null && password.equals(user.getPassword())) {
+            // Vérifier si le compte est vérifié
+            if (!user.isVerified()) {
+                System.out.println("Compte non vérifié pour: " + email);
+                req.setAttribute("error", "Votre compte n'est pas encore vérifié. Veuillez vérifier votre email et cliquer sur le lien de vérification.");
+                ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+                resolver.setPrefix("/WEB-INF/views/");
+                resolver.setSuffix(".html");
+                resolver.setTemplateMode("HTML");
+                resolver.setCharacterEncoding("UTF-8");
+                TemplateEngine engine = new TemplateEngine();
+                engine.setTemplateResolver(resolver);
+                Context ctx = new Context(req.getLocale());
+                ctx.setVariable("error", req.getAttribute("error"));
+                HttpSession session = req.getSession(false);
+                if (session != null) {
+                    ctx.setVariable("user", session.getAttribute("user"));
+                }
+                engine.process("login", ctx, resp.getWriter());
+                return;
+            }
+            
             HttpSession session = req.getSession();
             session.setAttribute("user", user);
             System.out.println("Connexion réussie pour: " + email);

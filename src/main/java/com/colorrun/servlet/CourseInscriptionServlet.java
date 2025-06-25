@@ -86,17 +86,27 @@ public class CourseInscriptionServlet extends HttpServlet {
             }
             System.out.println("CourseInscriptionServlet.doGet() - Participant ajouté avec succès avec l'ID: " + newParticipant.getId());
             
-            // Générer le PDF
-            byte[] pdfBytes = bibService.generateBibPdf(user, course, newParticipant);
-
-            // Configurer la réponse pour le téléchargement du PDF
-            response.setContentType("application/pdf");
-            response.setContentLength(pdfBytes.length);
-            String filename = "dossard-" + course.getNom().replaceAll("\\s+", "_") + "-" + user.getLastName() + ".pdf";
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-            // Écrire le PDF dans la réponse
-            response.getOutputStream().write(pdfBytes);
+            // Générer le PDF du dossard
+            try {
+                System.out.println("CourseInscriptionServlet.doGet() - Génération du PDF du dossard");
+                byte[] pdfBytes = bibService.generateBibPdf(user, course, newParticipant);
+                
+                // Configurer la réponse pour le téléchargement
+                response.setContentType("application/pdf");
+                response.setHeader("Content-Disposition", "attachment; filename=\"dossard_" + course.getNom().replace(" ", "_") + "_" + user.getLastName() + ".pdf\"");
+                response.setContentLength(pdfBytes.length);
+                
+                // Écrire le PDF dans la réponse
+                response.getOutputStream().write(pdfBytes);
+                response.getOutputStream().flush();
+                return; // Arrêter ici pour éviter la redirection
+            } catch (Exception e) {
+                System.out.println("CourseInscriptionServlet.doGet() - Erreur lors de la génération du PDF: " + e.getMessage());
+                e.printStackTrace();
+                // En cas d'erreur de génération du PDF, rediriger avec un message
+                response.sendRedirect(request.getContextPath() + "/courses/" + courseId + "?error=pdfGenerationFailed");
+                return;
+            }
 
         } catch (NumberFormatException e) {
             System.out.println("CourseInscriptionServlet.doGet() - Erreur de format de l'ID: " + e.getMessage());

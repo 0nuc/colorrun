@@ -1,17 +1,24 @@
 package com.colorrun.service;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 import com.colorrun.model.Course;
 import com.colorrun.model.Participant;
 import com.colorrun.model.User;
+import com.colorrun.util.QRCodeGenerator;
+import com.google.zxing.WriterException;
 import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
@@ -46,7 +53,20 @@ public class BibService {
         Paragraph p = new Paragraph().add(bibNumberLabel).add(bibNumber).setTextAlignment(TextAlignment.CENTER).setMarginTop(50);
         document.add(p);
 
+        // Ajout du QR code
+        try {
+            String qrContent = "{\"participantId\":" + user.getId() + ",\"courseId\":" + course.getId() + ",\"name\":\"" + user.getFirstName() + " " + user.getLastName() + "\"}";            BufferedImage qrImage = QRCodeGenerator.generateQRCodeImage(qrContent, 150, 150);
+            ByteArrayOutputStream qrBaos = new ByteArrayOutputStream();
+            ImageIO.write(qrImage, "PNG", qrBaos);
+            Image qrITextImage = new Image(ImageDataFactory.create(qrBaos.toByteArray()));
+            qrITextImage.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER);
+            document.add(qrITextImage);
+        } catch (WriterException e) {
+            // En cas d'erreur QR, on n'ajoute rien mais on continue
+            e.printStackTrace();
+        }
+
         document.close();
         return baos.toByteArray();
     }
-} 
+}

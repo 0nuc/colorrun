@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Optional;
 
 import com.colorrun.model.User;
+import com.colorrun.util.DatabaseInitializer;
 
 public class UserDao {
-    private static final String DB_URL = "jdbc:h2:file:./colorrun;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";    private static final String USER = "sa";
+    private static final String DB_URL = "jdbc:h2:file:./colorrun2;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_ON_EXIT=FALSE;AUTO_RECONNECT=TRUE;DB_CLOSE_DELAY=-1";
+    private static final String USER = "sa";
     private static final String PASS = "";
 
     static {
@@ -23,42 +25,45 @@ public class UserDao {
             e.printStackTrace();
         }
     }
-    public void update(User user) {
-        String sql = "UPDATE users SET first_name=?, last_name=?, address=?, postal_code=?, city=?, newsletter=?, profile_picture=? WHERE id=?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getFirstName());
-            ps.setString(2, user.getLastName());
-            ps.setString(3, user.getAddress());
-            ps.setString(4, user.getPostalCode());
-            ps.setString(5, user.getCity());
-            ps.setBoolean(6, user.isNewsletter());
-            ps.setString(7, user.getProfilePicture());
-            ps.setInt(8, user.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
     public UserDao() {
-        try {
-            // Vérifie si les tables existent
-            try (Connection conn = getConnection();
-                 ResultSet rs = conn.getMetaData().getTables(null, null, "USERS", null)) {
-                if (!rs.next()) {
-                    // Les tables n'existent pas, on les crée
-                    createTables(conn);
-                    insertTestData(conn);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // Initialiser la base de données une seule fois
+        DatabaseInitializer.getInstance().initializeDatabase();
     }
 
     private Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, USER, PASS);
+    }
+
+    public void update(User user) {
+        try (Connection conn = getConnection()) {
+            // Vérifie d'abord si la colonne verification_token existe
+            boolean hasVerificationToken = false;
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "VERIFICATION_TOKEN")) {
+                hasVerificationToken = rs.next();
+            }
+            
+            String sql;
+            if (hasVerificationToken) {
+                sql = "UPDATE users SET first_name=?, last_name=?, verification_token=? WHERE id=?";
+            } else {
+                sql = "UPDATE users SET first_name=?, last_name=? WHERE id=?";
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, user.getFirstName());
+                ps.setString(2, user.getLastName());
+                if (hasVerificationToken) {
+                    ps.setString(3, user.getVerificationToken());
+                    ps.setInt(4, user.getId());
+                } else {
+                    ps.setInt(3, user.getId());
+                }
+                ps.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public User findByEmail(String email) {
@@ -67,42 +72,62 @@ public class UserDao {
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE email = ?")) {
             ps.setString(1, email);
             System.out.println("Exécution de la requête SQL: " + ps.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setFirstName(rs.getString("first_name"));
-                user.setLastName(rs.getString("last_name"));
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setRole(rs.getString("role"));
-                // Champs optionnels
-                try { user.setAddress(rs.getString("address")); } catch (SQLException ignore) {}
-                try { user.setPostalCode(rs.getString("postal_code")); } catch (SQLException ignore) {}
-                try { user.setCity(rs.getString("city")); } catch (SQLException ignore) {}
-                try { user.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
-                try { user.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
-                System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec le rôle: " + user.getRole());
-                return user;
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setFirstName(rs.getString("first_name"));
+                    user.setLastName(rs.getString("last_name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(rs.getString("password"));
+                    user.setRole(rs.getString("role"));
+                    try { user.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
+                    try { user.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
+                    try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
+                    System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec l'ID: " + user.getId() + " et le rôle: " + user.getRole());
+                    return user;
+                } else {
+                    System.out.println("Aucun utilisateur trouvé pour l'email: " + email);
+                    return null;
+                }
             }
-            System.out.println("Aucun utilisateur trouvé pour l'email: " + email);
         } catch (SQLException e) {
-            System.out.println("Erreur SQL lors de la recherche de l'utilisateur: " + e.getMessage());
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     public void save(User user) {
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO users(first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)")) {
-            ps.setString(1, user.getFirstName());
-            ps.setString(2, user.getLastName());
-            ps.setString(3, user.getEmail());
-            ps.setString(4, user.getPassword());
-            ps.setString(5, user.getRole());
-            ps.executeUpdate();
+        try (Connection conn = getConnection()) {
+            // Vérifier si la colonne verified existe
+            boolean verifiedColumnExists = false;
+            try (java.sql.ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "VERIFIED")) {
+                verifiedColumnExists = rs.next();
+            }
+            
+            String sql;
+            if (verifiedColumnExists) {
+                sql = "INSERT INTO users(first_name, last_name, email, password, role, verified, verification_token) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            } else {
+                sql = "INSERT INTO users(first_name, last_name, email, password, role, verification_token) VALUES (?, ?, ?, ?, ?, ?)";
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, user.getFirstName());
+                ps.setString(2, user.getLastName());
+                ps.setString(3, user.getEmail());
+                ps.setString(4, user.getPassword());
+                ps.setString(5, user.getRole());
+                
+                if (verifiedColumnExists) {
+                    ps.setBoolean(6, user.isVerified());
+                    ps.setString(7, user.getVerificationToken());
+                } else {
+                    ps.setString(6, user.getVerificationToken());
+                }
+                
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -145,6 +170,9 @@ public class UserDao {
                 try { u.setCity(rs.getString("city")); } catch (SQLException ignore) {}
                 try { u.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
                 try { u.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
+                try { u.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
+                try { u.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
+                try { u.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
                 return Optional.of(u);
             }
         } catch (SQLException e) {
@@ -198,6 +226,63 @@ public class UserDao {
         return users;
     }
 
+    public User findByVerificationToken(String token) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE verification_token = ?")) {
+            ps.setString(1, token);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setFirstName(rs.getString("first_name"));
+                user.setLastName(rs.getString("last_name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(rs.getString("role"));
+                user.setVerificationToken(rs.getString("verification_token"));
+                try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
+                return user;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void updateUserWithToken(User user) {
+        String sql = "UPDATE users SET verification_token = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, user.getVerificationToken());
+            ps.setInt(2, user.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clearVerificationToken(int userId) {
+        String sql = "UPDATE users SET verification_token = NULL WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void verifyUser(int userId) {
+        String sql = "UPDATE users SET verified = TRUE WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void delete(int userId) {
         String sql = "DELETE FROM users WHERE id = ?";
         try (Connection conn = getConnection();
@@ -208,151 +293,4 @@ public class UserDao {
             e.printStackTrace();
         }
     }
-
-    private void createTables(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement()) {
-            // Table des utilisateurs
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    first_name VARCHAR(100) NOT NULL,
-                    last_name VARCHAR(100) NOT NULL,
-                    email VARCHAR(255) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    role VARCHAR(20) NOT NULL,
-                    address VARCHAR(255),
-                    postal_code VARCHAR(20),
-                    city VARCHAR(100),
-                    newsletter BOOLEAN DEFAULT FALSE,
-                    profile_picture VARCHAR(255),
-                    phone VARCHAR(30)
-                );
-                
-                CREATE TABLE IF NOT EXISTS course (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    nom VARCHAR(100) NOT NULL,
-                    description TEXT,
-                    date_heure TIMESTAMP NOT NULL,
-                    lieu VARCHAR(100) NOT NULL,
-                    distance INT NOT NULL,
-                    max_participants INT NOT NULL,
-                    prix DECIMAL(10,2) NOT NULL,
-                    avec_obstacles BOOLEAN DEFAULT FALSE,
-                    cause_soutenue VARCHAR(200)
-                );
-                
-                CREATE TABLE IF NOT EXISTS messages (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    course_id INT NOT NULL,
-                    user_id INT NOT NULL,
-                    contenu TEXT NOT NULL,
-                    date_heure TIMESTAMP NOT NULL,
-                    FOREIGN KEY (course_id) REFERENCES course(id),
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                );
-                
-                CREATE TABLE IF NOT EXISTS participants (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    course_id INT NOT NULL,
-                    user_id INT NOT NULL,
-                    FOREIGN KEY (course_id) REFERENCES course(id),
-                    FOREIGN KEY (user_id) REFERENCES users(id),
-                    UNIQUE (course_id, user_id)
-                );
-
-                CREATE TABLE IF NOT EXISTS organizer_requests (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    motivation TEXT NOT NULL,
-                    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-                    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                );
-            """);
-        }
-    }
-
-    private void insertTestData(Connection conn) throws SQLException {
-        // Vérifie si la table users est vide
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM users")) {
-            if (rs.next() && rs.getInt(1) == 0) {
-                // Insère les utilisateurs de test
-                try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)")) {
-                    
-                    // Admin
-                    pstmt.setString(1, "Admin");
-                    pstmt.setString(2, "Admin");
-                    pstmt.setString(3, "admin@colorrun.com");
-                    pstmt.setString(4, "admin123"); // En production, il faudrait hasher le mot de passe
-                    pstmt.setString(5, "ADMIN");
-                    pstmt.executeUpdate();
-
-                    // Participant
-                    pstmt.setString(1, "Dupont");
-                    pstmt.setString(2, "Jean");
-                    pstmt.setString(3, "jean@example.com");
-                    pstmt.setString(4, "jean123");
-                    pstmt.setString(5, "PARTICIPANT");
-                    pstmt.executeUpdate();
-
-                    // Organisateur
-                    pstmt.setString(1, "Martin");
-                    pstmt.setString(2, "Sophie");
-                    pstmt.setString(3, "sophie@example.com");
-                    pstmt.setString(4, "sophie123");
-                    pstmt.setString(5, "ORGANISATEUR");
-                    pstmt.executeUpdate();
-                }
-            }
-        }
-
-        // Vérifie si la table course est vide
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM course")) {
-            if (rs.next() && rs.getInt(1) == 0) {
-                // Insère les données de test
-                try (PreparedStatement pstmt = conn.prepareStatement(
-                    "INSERT INTO course (nom, description, date_heure, lieu, distance, max_participants, prix, avec_obstacles, cause_soutenue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                    
-                    // Course 1
-                    pstmt.setString(1, "ColorRun Paris");
-                    pstmt.setString(2, "Course colorée dans les rues de Paris");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-06-15 10:00:00"));
-                    pstmt.setString(4, "Paris");
-                    pstmt.setInt(5, 5);
-                    pstmt.setInt(6, 1000);
-                    pstmt.setDouble(7, 35.0);
-                    pstmt.setBoolean(8, true);
-                    pstmt.setString(9, "Association A");
-                    pstmt.executeUpdate();
-
-                    // Course 2
-                    pstmt.setString(1, "ColorRun Lyon");
-                    pstmt.setString(2, "Course colorée dans les rues de Lyon");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-07-20 09:00:00"));
-                    pstmt.setString(4, "Lyon");
-                    pstmt.setInt(5, 10);
-                    pstmt.setInt(6, 800);
-                    pstmt.setDouble(7, 40.0);
-                    pstmt.setBoolean(8, false);
-                    pstmt.setString(9, "Association B");
-                    pstmt.executeUpdate();
-
-                    // Course 3
-                    pstmt.setString(1, "ColorRun Marseille");
-                    pstmt.setString(2, "Course colorée sur la plage de Marseille");
-                    pstmt.setTimestamp(3, java.sql.Timestamp.valueOf("2025-08-05 08:00:00"));
-                    pstmt.setString(4, "Marseille");
-                    pstmt.setInt(5, 7);
-                    pstmt.setInt(6, 1200);
-                    pstmt.setDouble(7, 30.0);
-                    pstmt.setBoolean(8, true);
-                    pstmt.setString(9, "Association C");
-                    pstmt.executeUpdate();
-                }
-            }
-        }
-    }
-} 
+}
