@@ -83,4 +83,59 @@ public class MessageDao {
             e.printStackTrace();
         }
     }
+
+    public boolean delete(int messageId) {
+        String sql = "DELETE FROM messages WHERE id = ?";
+        System.out.println("MessageDao.delete() - Début pour messageId: " + messageId);
+        System.out.println("MessageDao.delete() - SQL: " + sql);
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, messageId);
+            int rowsAffected = ps.executeUpdate();
+            System.out.println("MessageDao.delete() - Lignes affectées: " + rowsAffected);
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.out.println("MessageDao.delete() - ERREUR SQL: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Message findById(int messageId) {
+        String sql = "SELECT m.*, u.first_name, u.last_name FROM messages m " +
+                    "JOIN users u ON m.user_id = u.id " +
+                    "WHERE m.id = ?";
+        
+        System.out.println("MessageDao.findById() - Début pour messageId: " + messageId);
+        System.out.println("MessageDao.findById() - SQL: " + sql);
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, messageId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Message message = new Message();
+                    message.setId(rs.getInt("id"));
+                    message.setCourseId(rs.getInt("course_id"));
+                    message.setUserId(rs.getInt("user_id"));
+                    message.setContenu(rs.getString("contenu"));
+                    message.setDateHeure(rs.getTimestamp("date_heure").toLocalDateTime());
+                    message.setAuteur(rs.getString("first_name") + " " + rs.getString("last_name"));
+                    
+                    System.out.println("MessageDao.findById() - Message trouvé:");
+                    System.out.println("  - ID: " + message.getId());
+                    System.out.println("  - CourseId: " + message.getCourseId());
+                    System.out.println("  - Contenu: " + message.getContenu());
+                    System.out.println("  - Auteur: " + message.getAuteur());
+                    
+                    return message;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("MessageDao.findById() - ERREUR SQL: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 } 

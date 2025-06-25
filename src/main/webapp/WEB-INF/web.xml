@@ -58,6 +58,20 @@
     <url-pattern>/profile</url-pattern>
   </servlet-mapping>
 
+  <!-- CourseEdit Servlet -->
+  <servlet>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.CourseEditServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <url-pattern>/courses/create</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>CourseEditServlet</servlet-name>
+    <url-pattern>/courses/edit/*</url-pattern>
+  </servlet-mapping>
+
   <!-- CourseDetails Servlet -->
   <servlet>
     <servlet-name>CourseDetailsServlet</servlet-name>
@@ -86,6 +100,16 @@
   <servlet-mapping>
     <servlet-name>CourseMessageServlet</servlet-name>
     <url-pattern>/course-message</url-pattern>
+  </servlet-mapping>
+
+  <!-- DeleteMessage Servlet -->
+  <servlet>
+    <servlet-name>DeleteMessageServlet</servlet-name>
+    <servlet-class>com.colorrun.servlet.DeleteMessageServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DeleteMessageServlet</servlet-name>
+    <url-pattern>/delete-message</url-pattern>
   </servlet-mapping>
 
   <!-- BecomeOrganizer Servlet -->
@@ -142,20 +166,6 @@
   <servlet-mapping>
     <servlet-name>VerifyEmailServlet</servlet-name>
     <url-pattern>/verify-email</url-pattern>
-  </servlet-mapping>
-
-  <!-- CourseEdit Servlet -->
-  <servlet>
-    <servlet-name>CourseEditServlet</servlet-name>
-    <servlet-class>com.colorrun.servlet.CourseEditServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>CourseEditServlet</servlet-name>
-    <url-pattern>/courses/create</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>CourseEditServlet</servlet-name>
-    <url-pattern>/courses/edit/*</url-pattern>
   </servlet-mapping>
 
   <!-- AdminUsers Servlet -->

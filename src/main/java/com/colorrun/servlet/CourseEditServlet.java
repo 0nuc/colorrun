@@ -42,7 +42,7 @@ public class CourseEditServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         HttpSession session = req.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null || !"ORGANISATEUR".equals(user.getRole())) {
+        if (user == null || (!"ORGANISATEUR".equals(user.getRole()) && !"ADMIN".equals(user.getRole()))) {
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
         }
@@ -53,8 +53,8 @@ public class CourseEditServlet extends HttpServlet {
             String[] parts = path.split("/edit/");
             int courseId = Integer.parseInt(parts[1]);
             course = courseDao.findById(courseId);
-            // Sécurité : seul l'organisateur de la course peut modifier
-            if (course == null || course.getOrganisateurId() != user.getId()) {
+            // Sécurité : seul l'organisateur de la course ou un admin peut modifier
+            if (course == null || (!"ADMIN".equals(user.getRole()) && course.getOrganisateurId() != user.getId())) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
@@ -74,7 +74,7 @@ public class CourseEditServlet extends HttpServlet {
         
         HttpSession session = req.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
-        if (user == null || !"ORGANISATEUR".equals(user.getRole())) {
+        if (user == null || (!"ORGANISATEUR".equals(user.getRole()) && !"ADMIN".equals(user.getRole()))) {
             System.out.println("CourseEditServlet.doPost() - Utilisateur non autorisé");
             resp.sendRedirect(req.getContextPath() + "/login");
             return;
@@ -129,7 +129,7 @@ public class CourseEditServlet extends HttpServlet {
             String[] parts = path.split("/edit/");
             int courseId = Integer.parseInt(parts[1]);
             Course course = courseDao.findById(courseId);
-            if (course == null || course.getOrganisateurId() != user.getId()) {
+            if (course == null || (!"ADMIN".equals(user.getRole()) && course.getOrganisateurId() != user.getId())) {
                 System.out.println("CourseEditServlet.doPost() - Course non trouvée ou non autorisée");
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;

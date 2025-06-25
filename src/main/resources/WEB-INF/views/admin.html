@@ -301,7 +301,7 @@
                     <td th:text="${course.prix + ' €'}"></td>
                     <td>
                       <a
-                        th:href="@{'/courses/' + ${course.id} + '/edit'}"
+                        th:href="@{'/courses/edit/' + ${course.id}}"
                         class="btn btn-primary btn-sm"
                         >Modifier</a
                       >
