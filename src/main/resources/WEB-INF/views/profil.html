@@ -219,7 +219,9 @@
               alt="Photo de profil"
               class="profile-avatar mb-3"
             />
-            <h2 th:text="${user.firstName + ' ' + user.lastName}">
+            <h2
+              th:text="${user.firstName != null and user.lastName != null ? user.firstName + ' ' + user.lastName : 'Nom non défini'}"
+            >
               Nom complet
             </h2>
             <p class="mb-0" th:text="${user.email}">Email</p>
@@ -409,7 +411,8 @@
                           type="text"
                           class="form-control"
                           id="firstName"
-                          th:field="*{firstName}"
+                          name="firstName"
+                          th:value="${user.firstName}"
                           required
                         />
                         <label for="firstName">Prénom</label>
@@ -421,7 +424,8 @@
                           type="text"
                           class="form-control"
                           id="lastName"
-                          th:field="*{lastName}"
+                          name="lastName"
+                          th:value="${user.lastName}"
                           required
                         />
                         <label for="lastName">Nom</label>
@@ -434,7 +438,8 @@
                           type="email"
                           class="form-control"
                           id="email"
-                          th:field="*{email}"
+                          name="email"
+                          th:value="${user.email}"
                           required
                           readonly
                         />
@@ -447,8 +452,8 @@
                           type="tel"
                           class="form-control"
                           id="phone"
-                          th:field="*{phone}"
-                          required
+                          name="phone"
+                          th:value="${user.phone}"
                         />
                         <label for="phone">Téléphone</label>
                       </div>
@@ -461,8 +466,8 @@
                           type="text"
                           class="form-control"
                           id="address"
-                          th:field="*{address}"
-                          required
+                          name="address"
+                          th:value="${user.address}"
                         />
                         <label for="address">Adresse</label>
                       </div>
@@ -474,8 +479,8 @@
                           type="text"
                           class="form-control"
                           id="postalCode"
-                          th:field="*{postalCode}"
-                          required
+                          name="postalCode"
+                          th:value="${user.postalCode}"
                         />
                         <label for="postalCode">Code postal</label>
                       </div>
@@ -486,8 +491,8 @@
                           type="text"
                           class="form-control"
                           id="city"
-                          th:field="*{city}"
-                          required
+                          name="city"
+                          th:value="${user.city}"
                         />
                         <label for="city">Ville</label>
                       </div>
@@ -500,7 +505,8 @@
                           type="checkbox"
                           class="form-check-input"
                           id="newsletter"
-                          th:field="*{newsletter}"
+                          name="newsletter"
+                          th:checked="${user.newsletter}"
                         />
                         <label class="form-check-label" for="newsletter">
                           Je souhaite recevoir la newsletter
@@ -587,43 +593,6 @@
     <script th:inline="javascript">
       // Obtenir le contexte de l'application depuis Thymeleaf
       const contextPath = /*[[@{/}]]*/ "";
-
-      // Récupérer les données mockées du localStorage
-      const mockUser = JSON.parse(localStorage.getItem("mockUser"));
-      if (mockUser) {
-        // Mettre à jour les informations du profil
-        document.querySelector(".profile-avatar").src = mockUser.profilePicture;
-        document.querySelector(
-          ".profile-header h2"
-        ).textContent = `${mockUser.firstName} ${mockUser.lastName}`;
-        document.querySelector(".profile-header p").textContent =
-          mockUser.email;
-
-        // Mettre à jour les statistiques
-        document.querySelectorAll(".stats-card h3").forEach((stat, index) => {
-          switch (index) {
-            case 0:
-              stat.textContent = mockUser.completedRaces;
-              break;
-            case 1:
-              stat.textContent = mockUser.upcomingRaces;
-              break;
-            case 2:
-              stat.textContent = `${mockUser.totalDistance} km`;
-              break;
-          }
-        });
-
-        // Mettre à jour le formulaire des paramètres
-        document.getElementById("firstName").value = mockUser.firstName;
-        document.getElementById("lastName").value = mockUser.lastName;
-        document.getElementById("email").value = mockUser.email;
-        document.getElementById("phone").value = mockUser.phone;
-        document.getElementById("address").value = mockUser.address;
-        document.getElementById("postalCode").value = mockUser.postalCode;
-        document.getElementById("city").value = mockUser.city;
-        document.getElementById("newsletter").checked = mockUser.newsletter;
-      }
 
       // Validation du formulaire de changement de mot de passe
       document

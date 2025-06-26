@@ -95,4 +95,76 @@ public class OrganizerRequestDao {
             e.printStackTrace();
         }
     }
+
+    public void save(OrganizerRequest request) {
+        create(request);
+    }
+
+    public OrganizerRequest findById(int id) {
+        String sql = "SELECT r.*, u.first_name, u.last_name, u.email FROM organizer_requests r " +
+                    "JOIN users u ON r.user_id = u.id " +
+                    "WHERE r.id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    OrganizerRequest request = new OrganizerRequest();
+                    request.setId(rs.getInt("id"));
+                    request.setUserId(rs.getInt("user_id"));
+                    request.setMotivation(rs.getString("motivation"));
+                    request.setStatus(rs.getString("status"));
+                    request.setRequestDate(rs.getTimestamp("request_date").toLocalDateTime());
+                    request.setUserFirstName(rs.getString("first_name"));
+                    request.setUserLastName(rs.getString("last_name"));
+                    request.setUserEmail(rs.getString("email"));
+                    return request;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void update(OrganizerRequest request) {
+        String sql = "UPDATE organizer_requests SET motivation = ?, status = ? WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, request.getMotivation());
+            ps.setString(2, request.getStatus());
+            ps.setInt(3, request.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int id) {
+        String sql = "DELETE FROM organizer_requests WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean hasPendingRequest(int userId) {
+        String sql = "SELECT COUNT(*) FROM organizer_requests WHERE user_id = ? AND status = 'EN_ATTENTE'";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 } 

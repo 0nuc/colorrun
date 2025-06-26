@@ -176,25 +176,74 @@ public class ProfileServlet extends HttpServlet {
             User updatedUser = new User();
             updatedUser.setId(user.getId());
             updatedUser.setEmail(user.getEmail());
-            updatedUser.setFirstName(req.getParameter("firstName"));
-            updatedUser.setLastName(req.getParameter("lastName"));
-            updatedUser.setAddress(req.getParameter("address"));
-            updatedUser.setPostalCode(req.getParameter("postalCode"));
-            updatedUser.setCity(req.getParameter("city"));
+            
+            // Récupérer les valeurs du formulaire avec validation
+            String firstName = req.getParameter("firstName");
+            String lastName = req.getParameter("lastName");
+            
+            // Logs de débogage pour voir les paramètres reçus
+            System.out.println("[ProfileServlet] Paramètres reçus du formulaire:");
+            System.out.println("  firstName param: '" + firstName + "'");
+            System.out.println("  lastName param: '" + lastName + "'");
+            System.out.println("  address param: '" + req.getParameter("address") + "'");
+            System.out.println("  postalCode param: '" + req.getParameter("postalCode") + "'");
+            System.out.println("  city param: '" + req.getParameter("city") + "'");
+            System.out.println("  phone param: '" + req.getParameter("phone") + "'");
+            System.out.println("  newsletter param: '" + req.getParameter("newsletter") + "'");
+            
+            // Validation : ne pas permettre les valeurs null pour les champs obligatoires
+            if (firstName == null || firstName.trim().isEmpty()) {
+                firstName = user.getFirstName(); // Garder l'ancienne valeur
+                System.out.println("[ProfileServlet] firstName vide, garde ancienne valeur: " + firstName);
+            }
+            if (lastName == null || lastName.trim().isEmpty()) {
+                lastName = user.getLastName(); // Garder l'ancienne valeur
+                System.out.println("[ProfileServlet] lastName vide, garde ancienne valeur: " + lastName);
+            }
+            
+            updatedUser.setFirstName(firstName.trim());
+            updatedUser.setLastName(lastName.trim());
+            
+            // Champs optionnels
+            String address = req.getParameter("address");
+            updatedUser.setAddress(address != null ? address.trim() : null);
+            
+            String postalCode = req.getParameter("postalCode");
+            updatedUser.setPostalCode(postalCode != null ? postalCode.trim() : null);
+            
+            String city = req.getParameter("city");
+            updatedUser.setCity(city != null ? city.trim() : null);
+            
+            String phone = req.getParameter("phone");
+            updatedUser.setPhone(phone != null ? phone.trim() : null);
+            
             updatedUser.setNewsletter(req.getParameter("newsletter") != null);
-            updatedUser.setPhone(req.getParameter("phone"));
             updatedUser.setProfilePicture(user.getProfilePicture());
             updatedUser.setRole(user.getRole());
             updatedUser.setPassword(user.getPassword());
+            
+            System.out.println("[ProfileServlet] Valeurs de updatedUser avant sauvegarde:");
+            System.out.println("  firstName: " + updatedUser.getFirstName());
+            System.out.println("  lastName: " + updatedUser.getLastName());
+            System.out.println("  address: " + updatedUser.getAddress());
+            System.out.println("  postalCode: " + updatedUser.getPostalCode());
+            System.out.println("  city: " + updatedUser.getCity());
+            System.out.println("  phone: " + updatedUser.getPhone());
+            
             try {
                 userDao.update(updatedUser);
                 session.setAttribute("user", updatedUser);
                 req.setAttribute("successMessage", "Profil mis à jour avec succès !");
+                System.out.println("[ProfileServlet] Utilisateur mis à jour avec succès");
             } catch (Exception e) {
+                System.out.println("[ProfileServlet] Error updating user: " + e.getMessage());
+                e.printStackTrace();
                 // Si erreur, on recharge l'utilisateur depuis la base pour garder des valeurs cohérentes
                 User freshUser = userDao.findByEmail(user.getEmail());
-                session.setAttribute("user", freshUser);
-                req.setAttribute("errorMessage", "Erreur lors de la mise à jour du profil (colonne manquante ?).");
+                if (freshUser != null) {
+                    session.setAttribute("user", freshUser);
+                }
+                req.setAttribute("errorMessage", "Erreur lors de la mise à jour du profil.");
             }
         }
         doGet(req, resp);

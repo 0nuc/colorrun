@@ -37,32 +37,98 @@ public class UserDao {
 
     public void update(User user) {
         try (Connection conn = getConnection()) {
-            // Vérifie d'abord si la colonne verification_token existe
+            // Vérifier que les champs obligatoires ne sont pas null
+            if (user.getFirstName() == null || user.getFirstName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Le prénom ne peut pas être vide");
+            }
+            if (user.getLastName() == null || user.getLastName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Le nom ne peut pas être vide");
+            }
+            
+            // Vérifier quelles colonnes existent dans la table
+            boolean hasPhone = false;
+            boolean hasAddress = false;
+            boolean hasPostalCode = false;
+            boolean hasCity = false;
+            boolean hasNewsletter = false;
+            boolean hasProfilePicture = false;
             boolean hasVerificationToken = false;
+            
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "PHONE")) {
+                hasPhone = rs.next();
+            }
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "ADDRESS")) {
+                hasAddress = rs.next();
+            }
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "POSTAL_CODE")) {
+                hasPostalCode = rs.next();
+            }
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "CITY")) {
+                hasCity = rs.next();
+            }
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "NEWSLETTER")) {
+                hasNewsletter = rs.next();
+            }
+            try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "PROFILE_PICTURE")) {
+                hasProfilePicture = rs.next();
+            }
             try (ResultSet rs = conn.getMetaData().getColumns(null, null, "USERS", "VERIFICATION_TOKEN")) {
                 hasVerificationToken = rs.next();
             }
             
-            String sql;
+            // Construire la requête SQL dynamiquement
+            StringBuilder sqlBuilder = new StringBuilder("UPDATE users SET first_name=?, last_name=?");
+            List<Object> params = new ArrayList<>();
+            params.add(user.getFirstName().trim());
+            params.add(user.getLastName().trim());
+            
+            if (hasPhone) {
+                sqlBuilder.append(", phone=?");
+                params.add(user.getPhone());
+            }
+            if (hasAddress) {
+                sqlBuilder.append(", address=?");
+                params.add(user.getAddress());
+            }
+            if (hasPostalCode) {
+                sqlBuilder.append(", postal_code=?");
+                params.add(user.getPostalCode());
+            }
+            if (hasCity) {
+                sqlBuilder.append(", city=?");
+                params.add(user.getCity());
+            }
+            if (hasNewsletter) {
+                sqlBuilder.append(", newsletter=?");
+                params.add(user.isNewsletter());
+            }
+            if (hasProfilePicture) {
+                sqlBuilder.append(", profile_picture=?");
+                params.add(user.getProfilePicture());
+            }
             if (hasVerificationToken) {
-                sql = "UPDATE users SET first_name=?, last_name=?, verification_token=? WHERE id=?";
-            } else {
-                sql = "UPDATE users SET first_name=?, last_name=? WHERE id=?";
+                sqlBuilder.append(", verification_token=?");
+                params.add(user.getVerificationToken());
             }
             
+            sqlBuilder.append(" WHERE id=?");
+            params.add(user.getId());
+            
+            String sql = sqlBuilder.toString();
+            System.out.println("[UserDao] SQL Update: " + sql);
+            System.out.println("[UserDao] Paramètres: " + params);
+            
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getFirstName());
-            ps.setString(2, user.getLastName());
-                if (hasVerificationToken) {
-            ps.setString(3, user.getVerificationToken());
-            ps.setInt(4, user.getId());
-                } else {
-                    ps.setInt(3, user.getId());
+                for (int i = 0; i < params.size(); i++) {
+                    ps.setObject(i + 1, params.get(i));
                 }
-            ps.executeUpdate();
+                int rowsAffected = ps.executeUpdate();
+                System.out.println("[UserDao] Lignes mises à jour: " + rowsAffected);
             }
         } catch (SQLException e) {
+            System.out.println("[UserDao] Erreur SQL lors de la mise à jour: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("Erreur lors de la mise à jour de l'utilisateur", e);
         }
     }
 
@@ -81,10 +147,18 @@ public class UserDao {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
                 user.setRole(rs.getString("role"));
+                
+                // Champs optionnels avec gestion d'erreur
                 try { user.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
+                try { user.setAddress(rs.getString("address")); } catch (SQLException ignore) {}
+                try { user.setPostalCode(rs.getString("postal_code")); } catch (SQLException ignore) {}
+                try { user.setCity(rs.getString("city")); } catch (SQLException ignore) {}
+                try { user.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
+                try { user.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
                 try { user.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
-                    try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
-                    System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec l'ID: " + user.getId() + " et le rôle: " + user.getRole());
+                try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
+                
+                System.out.println("Utilisateur trouvé: " + user.getEmail() + " avec l'ID: " + user.getId() + " et le rôle: " + user.getRole());
                 return user;
                 } else {
                     System.out.println("Aucun utilisateur trouvé pour l'email: " + email);
@@ -94,6 +168,41 @@ public class UserDao {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public User findById(int id) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE id = ?")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setFirstName(rs.getString("first_name"));
+                    user.setLastName(rs.getString("last_name"));
+                    user.setEmail(rs.getString("email"));
+                    user.setPassword(rs.getString("password"));
+                    user.setRole(rs.getString("role"));
+                    
+                    // Champs optionnels avec gestion d'erreur
+                    try { user.setPhone(rs.getString("phone")); } catch (SQLException ignore) {}
+                    try { user.setAddress(rs.getString("address")); } catch (SQLException ignore) {}
+                    try { user.setPostalCode(rs.getString("postal_code")); } catch (SQLException ignore) {}
+                    try { user.setCity(rs.getString("city")); } catch (SQLException ignore) {}
+                    try { user.setNewsletter(rs.getBoolean("newsletter")); } catch (SQLException ignore) {}
+                    try { user.setProfilePicture(rs.getString("profile_picture")); } catch (SQLException ignore) {}
+                    try { user.setVerificationToken(rs.getString("verification_token")); } catch (SQLException ignore) {}
+                    try { user.setVerified(rs.getBoolean("verified")); } catch (SQLException ignore) {}
+                    
+                    return user;
+                } else {
+                    return null;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        return null;
         }
     }
 

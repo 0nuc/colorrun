@@ -123,4 +123,43 @@ public class ParticipantDao {
         }
         return null;
     }
+
+    public Participant findById(int id) {
+        String sql = "SELECT p.*, u.first_name, u.last_name FROM participants p " +
+                    "JOIN users u ON p.user_id = u.id " +
+                    "WHERE p.id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Participant participant = new Participant();
+                    participant.setId(rs.getInt("id"));
+                    participant.setCourseId(rs.getInt("course_id"));
+                    participant.setUserId(rs.getInt("user_id"));
+                    participant.setNom(rs.getString("last_name"));
+                    participant.setPrenom(rs.getString("first_name"));
+                    return participant;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean delete(int id) {
+        String sql = "DELETE FROM participants WHERE id = ?";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            int rowsAffected = ps.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 } 
